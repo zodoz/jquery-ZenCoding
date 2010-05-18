@@ -39,6 +39,6 @@ $().ready(function() {
 	test('tag.class');
 	test('tag.class.class2');
 	test('tag#id.class.class2');
-	test('tag>tag2');
 	test('tag+tag2');
+	test('tag>tag2+tag3');
 });

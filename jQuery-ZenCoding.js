@@ -17,22 +17,28 @@
 			var blockId = regId.exec(block)[1];
 		var blockClasses = getClasses(block);
 		var blockTag = regTag.exec(block)[1];
-		var tagString = '<'+blockTag;
-		if(blockId !== undefined)
-			tagString += ' id="'+blockId+'"';
-		if(blockClasses !== undefined)
-			tagString += ' class="'+blockClasses+'"';
-		tagString += '></'+blockTag+'>';
-		console.log(tagString);
-		var el = $(tagString);
+		var el = $('<'+blockTag+'/>', {
+			id: blockId,
+			class: blockClasses
+		});
 		ZenCode = ZenCode.substr(blocks[0].length);
 		if(ZenCode.length > 0) {
 			console.log(ZenCode);
-			if(ZenCode[0] == '+')
-				el.after(createHTMLBlock(ZenCode.substr(1)));
+			if(ZenCode[0] == '+') {
+				//el.after(createHTMLBlock(ZenCode.substr(1)));
+				var el2 = createHTMLBlock(ZenCode.substr(1));
+				console.log('before insert');
+				var el = $([el, el2]);
+				console.log(el);
+				console.log('after insert');
+				//el2.insertAfter(el);
+			}
 			else if(ZenCode[0] == '>')
-				el.html(createHTMLBlock(ZenCode.substr(1)));
+				//el.append(createHTMLBlock(ZenCode.substr(1)));
+				createHTMLBlock(ZenCode.substr(1)).appendTo(el);
 		}
+		console.log(el);
+		console.log('returning');
 		return el;
 	}
 
