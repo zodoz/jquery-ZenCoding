@@ -39,6 +39,9 @@ $().ready(function() {
 	test('tag.class');
 	test('tag.class.class2');
 	test('tag#id.class.class2');
-	test('tag+tag2');
 	test('tag>tag2+tag3');
+	test('tag+tag2');
+	test('head>link');
+	test('span[title="Hello" rel]');
+	test('span[title="hello" rel]#name.one.two');
 });

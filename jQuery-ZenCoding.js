@@ -1,48 +1,47 @@
 (function($) {
  	$.zc = function(ZenCode) {
-		return createHTMLBlock(ZenCode);
+		console.log("-----starting: "+ZenCode);
+		var el = createHTMLBlock(ZenCode);
+		console.log("-------ending: "+ZenCode);
+		return el;
 	};
 
+	//TODO: implement filters, implement E*N and E*N$
 	function createHTMLBlock(ZenCode) {
-		var regBlock = /((\w+)[#.]?)+/gi,
+		var regBlock = /((\w+)(\[(\w+(="\w+")? ?)+\])?[#.]?)+/i,
 			regTag = /(\w+)/i,
 			regId = /#(\w+)/i,
 			regClass = /\.(\w+)/i;
 		var blocks = ZenCode.match(regBlock);
-		console.log(blocks);
 		if(blocks.length < 1)	//no more blocks to match
 			return;
 		var block = blocks[0];	//actual block to create
 		if(regId.test(block))
 			var blockId = regId.exec(block)[1];
-		var blockClasses = getClasses(block);
+		var blockClasses = parseClasses(block);
+		var blockAttrs = parseAttributes(block);
 		var blockTag = regTag.exec(block)[1];
-		var el = $('<'+blockTag+'/>', {
+		blockAttrs = $.extend(blockAttrs, {
 			id: blockId,
 			class: blockClasses
 		});
+		var el = $('<'+blockTag+'>', blockAttrs);
 		ZenCode = ZenCode.substr(blocks[0].length);
 		if(ZenCode.length > 0) {
-			console.log(ZenCode);
 			if(ZenCode[0] == '+') {
-				//el.after(createHTMLBlock(ZenCode.substr(1)));
 				var el2 = createHTMLBlock(ZenCode.substr(1));
-				console.log('before insert');
-				var el = $([el, el2]);
-				console.log(el);
-				console.log('after insert');
-				//el2.insertAfter(el);
+				var el = $([outerHTML(el), outerHTML(el2)].join(''));
 			}
-			else if(ZenCode[0] == '>')
-				//el.append(createHTMLBlock(ZenCode.substr(1)));
-				createHTMLBlock(ZenCode.substr(1)).appendTo(el);
+			else if(ZenCode[0] == '>') {
+				var els = $(createHTMLBlock(ZenCode.substr(1)));
+				els.appendTo(el);
+			}
 		}
-		console.log(el);
-		console.log('returning');
-		return el;
+		var ret = outerHTML(el);
+		return ret;
 	}
 
-	function getClasses(ZenBlock) {
+	function parseClasses(ZenBlock) {
 		var regClasses = /(\.\w+)/gi,
 			regClass = /\.(\w+)/i;
 		if(ZenBlock.search(regClasses) == -1)
@@ -53,5 +52,28 @@
 			clsString += ' '+regClass.exec(classes[i])[1];
 		}
 		return clsString.trim();
+	}
+
+	function parseAttributes(ZenBlock) {
+		var regAttrDfn = /(\[(\w+(="\w+")? ?)+\])/i,
+			regAttrs = /(\w+(="\w+")?)/gi,
+			regAttr = /(\w+)(="(\w+)")?/i;
+		if(ZenBlock.search(regAttrDfn) == -1)
+			return undefined;
+		var attrStrs = ZenBlock.match(regAttrDfn);
+		var attrStrs = attrStrs[0].match(regAttrs);
+		//var attrStrs = regAttrs.exec(attrStrs[0]);
+		var attrs = {};
+		for(var i=0;i<attrStrs.length;i++) {
+			var parts = regAttr.exec(attrStrs[i]);
+			attrs[parts[1]] = '';
+			if(parts[3] !== undefined)
+				attrs[parts[1]] = parts[3];
+		}
+		return attrs;
+	}
+
+	function outerHTML(el) {
+		return $('<div>').append($(el)).html();
 	}
  })(jQuery);
