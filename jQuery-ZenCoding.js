@@ -1,8 +1,6 @@
 (function($) {
  	$.zc = function(ZenCode) {
-		console.log("-----starting: "+ZenCode);
 		var el = createHTMLBlock(ZenCode);
-		console.log("-------ending: "+ZenCode);
 		return el;
 	};
 
@@ -18,14 +16,10 @@
 	//TODO: should filters, and E*N and E*N$ be implemented?
 	function createHTMLBlock(ZenCode) {
 		var origZenCode = ZenCode;
-		log('parsing: '+ZenCode);
 		if(ZenCode[0]=='(') {
 			var paren = parseParen(ZenCode);
-			log('gotParen: '+paren);
 			var inner = paren.substr(1,paren.length-2);
-			log(inner);
 			ZenCode = ZenCode.substr(paren.length,ZenCode.length-1);
-			log('newZen: '+ZenCode);
 			var el = createHTMLBlock(inner);
 		} else {
 			var regBlock = /((\w+)(\[(\w+(="\w+")? ?)+\])?[#.]?)+/i,
@@ -45,8 +39,6 @@
 				id: blockId,
 				class: blockClasses
 			});
-			log('adding');
-			log(blockAttrs);
 			var el = $('<'+blockTag+'>', blockAttrs);
 			ZenCode = ZenCode.substr(blocks[0].length);
 		}
@@ -61,7 +53,6 @@
 			}
 		}
 		var ret = outerHTML(el);
-		log('returning('+origZenCode+'): '+ret);
 		return ret;
 	}
 
@@ -84,24 +75,16 @@
 			regAttr = /(\w+)(="(\w+)")?/i;
 		if(ZenBlock.search(regAttrDfn) == -1)
 			return undefined;
-		log(ZenBlock);
 		var attrStrs = ZenBlock.match(regAttrDfn);
-		log(attrStrs);
 		var attrStrs = attrStrs[0].match(regAttrs);
-		log(attrStrs);
 		//var attrStrs = regAttrs.exec(attrStrs[0]);
 		var attrs = {};
-		log('loop');
 		for(var i=0;i<attrStrs.length;i++) {
-			log(attrStrs[i]);
 			var parts = regAttr.exec(attrStrs[i]);
-			log(parts);
 			attrs[parts[1]] = '';
 			if(parts[3] !== undefined)
 				attrs[parts[1]] = parts[3];
 		}
-		log('loop');
-		log(attrs);
 		return attrs;
 	}
 
@@ -116,8 +99,6 @@
 				parenCount--;
 		}
 		var ret = ZenCode.substr(0,index);
-		log('paren: '+ZenCode);
-		log(ret);
 		return ret;
 	}
 
