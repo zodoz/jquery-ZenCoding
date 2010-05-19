@@ -46,4 +46,25 @@ $().ready(function() {
 	test('span[title="hello" rel]#name.one.two');
 	test('(div#page>(div#header>ul#nav>li>a)+(h1>span)+p+p)+div#footer');
 	test('#page>(div#header>ul#nav>li>a)+(h1>span)+p+p+#footer');
+
+	var data = {
+		contacts: [
+			{
+				name: 'Bob',
+				email: 'bob@s.com',
+				bio: 'Some stuff Bob does.'
+			}, {
+				name: 'Jill',
+				email: 'jill@s.com',
+				bio: 'Some stuff Jill does.'
+			}
+		]
+	};
+	var zenContacts =
+		'#comment{There are !contacts.length! contacts:}'+
+		'+!for:contacts!'+
+			'.contact>'+
+				'(.name{!name!}'+
+				'+.email>a.email[href="mailto:!email!"]{email}'+
+				'+.info{!bio!})';
 });
