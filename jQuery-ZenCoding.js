@@ -22,7 +22,8 @@
 			ZenCode = ZenCode.substr(paren.length,ZenCode.length-1);
 			var el = createHTMLBlock(inner);
 		} else {
-			var regBlock = /((\w+)(\[(\w+(="\w+")? ?)+\])?[#.]?)+/i,
+			//var regBlock = /((\w+)(\[(\w+(="\w+")? ?)+\])?[#.]?)+/i,
+			var regBlock = /(([#\.]?\w+)?(\[(\w+(="\w+")? ?)+\])?)+/i,
 				regTag = /(\w+)/i,
 				regId = /#(\w+)/i,
 				regClass = /\.(\w+)/i;
@@ -34,7 +35,9 @@
 				var blockId = regId.exec(block)[1];
 			var blockClasses = parseClasses(block);
 			var blockAttrs = parseAttributes(block);
-			var blockTag = regTag.exec(block)[1];
+			var blockTag = 'div';	//default
+			if(ZenCode[0]!='#' && ZenCode!='.')
+				blockTag = regTag.exec(block)[1];	//otherwise
 			blockAttrs = $.extend(blockAttrs, {
 				id: blockId,
 				class: blockClasses
@@ -56,6 +59,7 @@
 		return ret;
 	}
 
+	//parses classes out of a single css element definition
 	function parseClasses(ZenBlock) {
 		var regClasses = /(\.\w+)/gi,
 			regClass = /\.(\w+)/i;
@@ -69,6 +73,7 @@
 		return clsString.trim();
 	}
 
+	//parses attributes out of a single css element definition
 	function parseAttributes(ZenBlock) {
 		var regAttrDfn = /(\[(\w+(="\w+")? ?)+\])/i,
 			regAttrs = /(\w+(="\w+")?)/gi,
@@ -88,6 +93,8 @@
 		return attrs;
 	}
 
+	//returns an entire parenthetical expression taking accout for
+	//internal parentheses.
 	function parseParen(ZenCode) {
 		var parenCount = ZenCode[0]=='('?1:0, index = 1;
 		if(parenCount==0)

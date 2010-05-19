@@ -45,4 +45,5 @@ $().ready(function() {
 	test('span[title="Hello" rel]');
 	test('span[title="hello" rel]#name.one.two');
 	test('(div#page>(div#header>ul#nav>li>a)+(h1>span)+p+p)+div#footer');
+	test('#page>(div#header>ul#nav>li>a)+(h1>span)+p+p+#footer');
 });
