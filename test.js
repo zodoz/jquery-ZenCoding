@@ -66,6 +66,7 @@ $().ready(function() {
 			'.contact>'+
 				'(.name{!name!}'+
 				'+.email>a.email[href="mailto:!email!"]{email}'+
-				'+.info{!bio!})';
+				'+.info{!bio!})'+
+		'+.message{hi!}';
 	test(zenContacts,data);
 });
