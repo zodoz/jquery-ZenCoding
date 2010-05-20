@@ -134,19 +134,22 @@
 
 	//returns an entire parenthetical expression taking accout for
 	//internal parentheses.
-	function parseEnclosure(ZenCode,open,close) {
+	function parseEnclosure(ZenCode,open,close,parenCount) {
 		if(close===undefined)
 			close = open;
-		var parenCount = ZenCode[0]==open?1:0, index = 1;
+		var index = 1;
+		if(parenCount === undefined)
+			parenCount = ZenCode[0]==open?1:0;
 		if(parenCount==0)
 			return;
-		for(;parenCount>0;index++) {
+		for(;parenCount>0 && index<ZenCode.length;index++) {
 			if(ZenCode[index]==close && ZenCode[index-1]!='\\')
 				parenCount--;
 			else if(ZenCode[index]==open && ZenCode[index-1]!='\\')
 				parenCount++;
 		}
 		var ret = ZenCode.substring(0,index);
+		log('returning from '+open+' ('+ZenCode+'): '+ret);
 		return ret;
 	}
 
@@ -168,18 +171,25 @@
 	function parseForScope(ZenCode) {
 		if(ZenCode.substring(0,5)!="!for:")
 			return undefined;
+		log('parsing for scope: '+ZenCode);
 		var forCode = parseEnclosure(ZenCode,'!');
 		ZenCode = ZenCode.substr(forCode.length);
 		var tag = ZenCode.match(regZenTagDfn)[0];
 		ZenCode = ZenCode.substr(tag.length);
+		log('ZenCode now: '+ZenCode);
 		if(ZenCode[0]=='+')
-			return forCode;
+			return tag;
 		else if(ZenCode[0]=='>') {
 			var rest = '';
-			if(ZenCode[1]=='(')
+			//TODO fix for instance !for:...!.class>p+p+p+p....
+			/*if(ZenCode[1]=='(')
 				rest = parseEnclosure(ZenCode.substr(1),'(',')');
-			else
+			else {
 				rest = ZenCode.substring(1,ZenCode.find('+'));
+			}*/
+			log('getting rest');
+			rest = parseEnclosure(ZenCode.substr(1),'(',')',1);
+			log('got rest: '+rest);
 			return tag+'>'+rest;
 		}
 		//should never happen
