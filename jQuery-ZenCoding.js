@@ -72,8 +72,10 @@
 			var blockClasses = parseClasses(block);
 			var blockAttrs = parseAttributes(block,data);
 			var blockTag = 'div';	//default
-			if(ZenCode[0]!='#' && ZenCode!='.')
+			log('parsing: '+block);
+			if(ZenCode[0]!='#' && ZenCode[0]!='.')
 				blockTag = regTag.exec(block)[1];	//otherwise
+			log('->'+blockTag);
 			blockAttrs = $.extend(blockAttrs, {
 				id: blockId,
 				class: blockClasses,
