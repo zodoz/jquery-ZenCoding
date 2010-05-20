@@ -78,6 +78,6 @@ $().ready(function() {
 				'+.email>a.email[href="mailto:!email!"]{email}'+
 				'+.info{!bio!})'+
 		'+.message{hi!}'+
-		'+ul>!for:i:list!li{!i!. !value!}';
+		'+ul>!for:i:list!li{!(i+1).toFixed(3)!. !value!}';
 	test(zenContacts,data);
 });

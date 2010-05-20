@@ -38,7 +38,7 @@
 
 		//finds content within '{' and '}' while ignoring '\}'
 		regCBrace = /\{(([^\\}]|\\\})+)\}/i,
-		regExclamation = /!([\w\.\[\]]+)!/gi;	//finds js within '!'
+		regExclamation = /!(([^!]|\\!)+)!/gi;	//finds js within '!'
 
 	//TODO: should filters, and E*N and E*N$ be implemented?
 	function createHTMLBlock(ZenCode,data,indexes) {
