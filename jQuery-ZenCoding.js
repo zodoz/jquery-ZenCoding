@@ -14,14 +14,23 @@
 	}
 
 	//TODO: should filters, and E*N and E*N$ be implemented?
-	function createHTMLBlock(ZenCode) {
+	function createHTMLBlock(ZenCode,data) {
 		var origZenCode = ZenCode;
 		if(ZenCode[0]=='(') {
-			var paren = parseParen(ZenCode);
+			var paren = parseEnclosure(ZenCode,'(',')');
 			var inner = paren.substr(1,paren.length-2);
 			ZenCode = ZenCode.substr(paren.length,ZenCode.length-1);
 			var el = createHTMLBlock(inner);
-		} else {
+		} /*else if(ZenCode[0]=='!') {
+			var obj = parseEnclosure(ZenCode,'!');
+			obj = obj.substr(5,obj.length-1);
+			log('found for: '+obj);
+			var el;
+			$.each(data[obj],function(index, value) {
+				if(el===undefined)
+					el = createHTMLBlock(
+			}
+		} */else {
 			//var regBlock = /((\w+)(\[(\w+(="\w+")? ?)+\])?[#.]?)+/i,
 			var regBlock = /(([#\.]?\w+)?(\[(\w+(="\w+")? ?)+\])?)+/i,
 				regTag = /(\w+)/i,
@@ -95,14 +104,16 @@
 
 	//returns an entire parenthetical expression taking accout for
 	//internal parentheses.
-	function parseParen(ZenCode) {
-		var parenCount = ZenCode[0]=='('?1:0, index = 1;
+	function parseEnclosure(ZenCode,open,close) {
+		if(close===undefined)
+			close = open;
+		var parenCount = ZenCode[0]==open?1:0, index = 1;
 		if(parenCount==0)
 			return;
 		for(;parenCount>0;index++) {
-			if(ZenCode[index]=='(')
+			if(ZenCode[index]==open && ZenCode[index-1]!='\')
 				parenCount++;
-			else if(ZenCode[index]==')')
+			else if(ZenCode[index]==close && ZenCode[index-1]!='\')
 				parenCount--;
 		}
 		var ret = ZenCode.substr(0,index);

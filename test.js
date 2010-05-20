@@ -1,10 +1,10 @@
 $().ready(function() {
 	$('#area').val('');
 	var count=0;
-	function test(ZenCode) {
+	function test(ZenCode,data) {
 		var area = $('#area');
 		area.append(
-			$('<div id=\'test('+ZenCode+')\'></div>').append($.zc(ZenCode))
+			$('<div id=\'test('+ZenCode+')\'></div>').append($.zc(ZenCode,data))
 		);
 	}
 	/*
@@ -67,4 +67,5 @@ $().ready(function() {
 				'(.name{!name!}'+
 				'+.email>a.email[href="mailto:!email!"]{email}'+
 				'+.info{!bio!})';
+	test(zenContacts,data);
 });
