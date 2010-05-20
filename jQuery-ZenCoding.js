@@ -41,28 +41,44 @@
 		regExclamation = /!([\w\.\[\]]+)!/gi;	//finds js within '!'
 
 	//TODO: should filters, and E*N and E*N$ be implemented?
-	function createHTMLBlock(ZenCode,data) {
+	function createHTMLBlock(ZenCode,data,indexes) {
 		var origZenCode = ZenCode;
-		if(ZenCode[0]=='(') {
+		if(ZenCode[0]=='(') {	//nested group
 			var paren = parseEnclosure(ZenCode,'(',')');
 			var inner = paren.substring(1,paren.length-1);
 			ZenCode = ZenCode.substring(paren.length,ZenCode.length-1);
 			var el = createHTMLBlock(inner,data);
-		} else if(ZenCode[0]=='!') {
+		} else if(ZenCode[0]=='!') {	//!for:...!
 			var obj = parseEnclosure(ZenCode,'!');
 			obj = obj.substring(5,obj.length-1);
+			if(obj.indexOf(':')>0) {
+				var indexName = obj.substring(0,obj.indexOf(':'));
+				if(indexes === undefined)
+					indexes = {};
+				obj = obj.substr(obj.indexOf(':')+1);
+				log('got index name: '+indexName);
+			}
+			log('loop obj: '+obj);
 			var forScope = parseForScope(ZenCode);
 			var el = '';
+			log('starting loop: '+forScope);
 			$.map(data[obj], function(value, index) {
-				var next = createHTMLBlock(forScope,value);
+				log('one');
+				if(indexName!==undefined) {
+					indexes[indexName] = index;
+					log(indexes);
+				}
+				log('two');
+				if(!$.isPlainObject(value))
+					value = {value:value};
+				log('getting next');
+				log(indexes);
+				var next = createHTMLBlock(forScope,value,indexes);
+				log('got next');
 				el = outerHTML($([outerHTML(el), outerHTML(next)].join('')));
 			});
 			ZenCode = ZenCode.substr(obj.length+6+forScope.length);
 		} else {
-			//var regBlock = /((\w+)(\[(\w+(="\w+")? ?)+\])?[#.]?)+/i,
-			/*var regBlock = /(([#\.]?\w+)?(\[(\w+(="\w+")? ?)+\])?)/i,
-				regTag = /(\w+)/i,
-				regId = /#(\w+)/i;*/
 			var blocks = ZenCode.match(regZenTagDfn);
 			if(blocks.length < 1)	//no more blocks to match
 				return;
@@ -79,7 +95,7 @@
 			blockAttrs = $.extend(blockAttrs, {
 				id: blockId,
 				class: blockClasses,
-				html: parseContents(block,data)
+				html: parseContents(block,data,indexes)
 			});
 			var el = $('<'+blockTag+'>', blockAttrs);
 			ZenCode = ZenCode.substr(blocks[0].length);
@@ -153,18 +169,26 @@
 		return ret;
 	}
 
-	function parseContents(ZenBlock, data) {
+	function parseContents(ZenBlock, data, indexes) {
+		if(indexes===undefined)
+			indexes = {};
 		if(ZenBlock.search(regCBrace) == -1)
 			return '';
 		var html = ZenBlock.match(regCBrace)[1];
 		if(data===undefined)
 			return html;
+		log('parsing html');
+		log(indexes);
 		html = html.replace(regExclamation, function(str) {
 			str = str.substring(1,str.length-1);
-			var fn = new Function('data',
-				'var r="";with(data){r='+str+';}return r;');
-			return fn(data);
+			var fn = new Function('data','indexes',
+				'var r="";'+
+				'with(data){try{r='+str+';}catch(e){}}'+
+				'with(indexes){try{r='+str+';}catch(e){}}'+
+				'return r;');
+			return fn(data,indexes);
 		});
+		log('done parsing html');
 		return html;
 	}
 
@@ -177,8 +201,10 @@
 		var tag = ZenCode.match(regZenTagDfn)[0];
 		ZenCode = ZenCode.substr(tag.length);
 		log('ZenCode now: '+ZenCode);
-		if(ZenCode[0]=='+')
+		if(ZenCode.length==0 || ZenCode[0]=='+') {
+			log('returning scope: '+tag);
 			return tag;
+		}
 		else if(ZenCode[0]=='>') {
 			var rest = '';
 			//TODO fix for instance !for:...!.class>p+p+p+p....

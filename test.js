@@ -53,13 +53,22 @@ $().ready(function() {
 			{
 				name: 'Bob',
 				email: 'bob@s.com',
-				bio: 'Some stuff Bob does.'
+				bio: 'Some stuff Bob does.',
+				children: [
+					{
+						name: 'boy'
+					}, {
+						name: 'girl'
+					}
+				]
 			}, {
 				name: 'Jill',
 				email: 'jill@s.com',
-				bio: 'Some stuff Jill does.'
+				bio: 'Some stuff Jill does.',
+				children: []
 			}
-		]
+		],
+		list: ['one','two','three']
 	};
 	var zenContacts =
 		'#comment{There are !contacts.length! contacts:}'+
@@ -68,6 +77,7 @@ $().ready(function() {
 				'(.name{!name!}'+
 				'+.email>a.email[href="mailto:!email!"]{email}'+
 				'+.info{!bio!})'+
-		'+.message{hi!}';
+		'+.message{hi!}'+
+		'+ul>!for:i:list!li{!i!. !value!}';
 	test(zenContacts,data);
 });
