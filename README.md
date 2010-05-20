@@ -5,7 +5,7 @@ This project is based on the core idea of [Zen Coding](http://code.google.com/p/
 
 So first it might be good to mention a few difference from Zen Coding:
 
- * E*N and E*N$ are not included because they are not useful for the purpose of dynamically creating HTML code based on a template.  Also, their functionality can be implemented in a different form, which I believe feels more natural.
+ * E\*N and E\*N$ are not included because they are not useful for the purpose of dynamically creating HTML code based on a template.  Also, their functionality can be implemented in a different form, which I believe feels more natural.
  * filters are not included as the purpose is only to generate HTML code.
 
 Other than those two items, the rest of the syntax in Zen Coding should be the same.
@@ -13,13 +13,14 @@ Other than those two items, the rest of the syntax in Zen Coding should be the s
 Now for some new stuff:
 
  * **!...!** - Everything contained within exclamation points is interperted as javascript code, and the restult of which is used in its place in the final HTML.
- * **!for:...!E* - This tells the next items to loop through an array, and use its values instead of the data as a whole.
+ * **!for:...!E** - This tells the next items to loop through an array, and use its values instead of the data as a whole.
  * **E{...}** - Everything within '{' and '}' are the contents of E.
 
 Usage
 =====
 
 **$.zc(ZenCode)** - returns the HTML string represented by the ZenCode string
+
 **$.zc(ZenCode, data)** - return the HTML string represented by the ZenCode template using the given data.
 
 Examples
