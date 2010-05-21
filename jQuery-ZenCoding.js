@@ -56,25 +56,16 @@
 				if(indexes === undefined)
 					indexes = {};
 				obj = obj.substr(obj.indexOf(':')+1);
-				log('got index name: '+indexName);
 			}
-			log('loop obj: '+obj);
 			var forScope = parseForScope(ZenCode);
 			var el = '';
-			log('starting loop: '+forScope);
 			$.map(data[obj], function(value, index) {
-				log('one');
 				if(indexName!==undefined) {
 					indexes[indexName] = index;
-					log(indexes);
 				}
-				log('two');
 				if(!$.isPlainObject(value))
 					value = {value:value};
-				log('getting next');
-				log(indexes);
 				var next = createHTMLBlock(forScope,value,indexes);
-				log('got next');
 				el = outerHTML($([outerHTML(el), outerHTML(next)].join('')));
 			});
 			ZenCode = ZenCode.substr(obj.length+6+forScope.length);
@@ -88,10 +79,8 @@
 			var blockClasses = parseClasses(block);
 			var blockAttrs = parseAttributes(block,data);
 			var blockTag = 'div';	//default
-			log('parsing: '+block);
 			if(ZenCode[0]!='#' && ZenCode[0]!='.')
 				blockTag = regTag.exec(block)[1];	//otherwise
-			log('->'+blockTag);
 			blockAttrs = $.extend(blockAttrs, {
 				id: blockId,
 				class: blockClasses,
@@ -116,8 +105,6 @@
 
 	//parses classes out of a single css element definition
 	function parseClasses(ZenBlock) {
-		/*var regClasses = /(\.\w+)/gi,
-			regClass = /\.(\w+)/i;*/
 		if(ZenBlock.search(regClasses) == -1)
 			return undefined;
 		var classes = ZenBlock.match(regClasses);
@@ -130,14 +117,10 @@
 
 	//parses attributes out of a single css element definition
 	function parseAttributes(ZenBlock, data) {
-		/*var regAttrDfn = /(\[(\w+(="\w+")? ?)+\])/i,
-			regAttrs = /(\w+(="\w+")?)/gi,
-			regAttr = /(\w+)(="(\w+)")?/i;*/
 		if(ZenBlock.search(regAttrDfn) == -1)
 			return undefined;
 		var attrStrs = ZenBlock.match(regAttrDfn);
 		var attrStrs = attrStrs[0].match(regAttrs);
-		//var attrStrs = regAttrs.exec(attrStrs[0]);
 		var attrs = {};
 		for(var i=0;i<attrStrs.length;i++) {
 			var parts = regAttr.exec(attrStrs[i]);
@@ -165,7 +148,6 @@
 				parenCount++;
 		}
 		var ret = ZenCode.substring(0,index);
-		log('returning from '+open+' ('+ZenCode+'): '+ret);
 		return ret;
 	}
 
@@ -177,8 +159,6 @@
 		var html = ZenBlock.match(regCBrace)[1];
 		if(data===undefined)
 			return html;
-		log('parsing html');
-		log(indexes);
 		html = html.replace(regExclamation, function(str) {
 			str = str.substring(1,str.length-1);
 			var fn = new Function('data','indexes',
@@ -188,38 +168,24 @@
 				'return r;');
 			return fn(data,indexes);
 		});
-		log('done parsing html');
 		return html;
 	}
 
 	function parseForScope(ZenCode) {
 		if(ZenCode.substring(0,5)!="!for:")
 			return undefined;
-		log('parsing for scope: '+ZenCode);
 		var forCode = parseEnclosure(ZenCode,'!');
 		ZenCode = ZenCode.substr(forCode.length);
 		var tag = ZenCode.match(regZenTagDfn)[0];
 		ZenCode = ZenCode.substr(tag.length);
-		log('ZenCode now: '+ZenCode);
 		if(ZenCode.length==0 || ZenCode[0]=='+') {
-			log('returning scope: '+tag);
 			return tag;
 		}
 		else if(ZenCode[0]=='>') {
 			var rest = '';
-			//TODO fix for instance !for:...!.class>p+p+p+p....
-			/*if(ZenCode[1]=='(')
-				rest = parseEnclosure(ZenCode.substr(1),'(',')');
-			else {
-				rest = ZenCode.substring(1,ZenCode.find('+'));
-			}*/
-			log('getting rest');
 			rest = parseEnclosure(ZenCode.substr(1),'(',')',1);
-			log('got rest: '+rest);
 			return tag+'>'+rest;
 		}
-		//should never happen
-		//log('problem: '+ZenCode[0]);
 		return undefined;
 	}
 
