@@ -100,14 +100,14 @@
 		var origZenCode = ZenCode;
 		log('parsing: '+ZenCode);
 		// Take care of nested groups
-		if(ZenCode[0]=='(') {
+		if(ZenCode.charAt(0)=='(') {
 			var paren = parseEnclosure(ZenCode,'(',')');
 			var inner = paren.substring(1,paren.length-1);
 			ZenCode = ZenCode.substr(paren.length);
 			var el = createHTMLBlock(inner,data);
 		}
 		// Take care of !for:...! structure
-		else if(ZenCode[0]=='!') {	//!for:...!
+		else if(ZenCode.charAt(0)=='!') {	//!for:...!
 			var obj = parseEnclosure(ZenCode,'!');
 			obj = obj.substring(5,obj.length-1);
 			if(obj.indexOf(':')>0) {
@@ -141,28 +141,31 @@
 				var blockId = regId.exec(block)[1];
 			var blockAttrs = parseAttributes(block,data);
 			var blockTag = 'div';	//default
-			if(ZenCode[0]!='#' && ZenCode[0]!='.')
+
+			if(ZenCode.charAt(0)!='#' && ZenCode.charAt(0)!='.')
 				blockTag = regTag.exec(block)[1];	//otherwise
 			if(block.search(regCBrace) != -1)
 				var blockHTML = block.match(regCBrace)[1];
 			blockAttrs = $.extend(blockAttrs, {
 				id: blockId,
-				class: blockClasses,
+				'class': blockClasses,
 				html: blockHTML
 			});
+			console.log(blockAttrs);
 			var el = $('<'+blockTag+'>', blockAttrs);
+			console.log('created: '+outerHTML(el));
 			ZenCode = ZenCode.substr(blocks[0].length);
 		}
 
 		// Recurse based on '+' or '>'
 		if(ZenCode.length > 0) {
 			// Create siblings
-			if(ZenCode[0] == '+') {
+			if(ZenCode.charAt(0) == '+') {
 				var el2 = createHTMLBlock(ZenCode.substr(1),data);
 				var el = $([outerHTML(el), outerHTML(el2)].join(''));
 			}
 			// Create children
-			else if(ZenCode[0] == '>') {
+			else if(ZenCode.charAt(0) == '>') {
 				var els = $(createHTMLBlock(ZenCode.substr(1),data));
 				els.appendTo(el);
 			}
@@ -184,7 +187,7 @@
 		for(var i=0;i<classes.length;i++) {
 			clsString += ' '+regClass.exec(classes[i])[1];
 		}
-		return clsString.trim();
+		return $.trim(clsString);
 	}
 
 	/*
@@ -218,13 +221,13 @@
 			close = open;
 		var index = 1;
 		if(count === undefined)
-			count = ZenCode[0]==open?1:0;
+			count = ZenCode.charAt(0)==open?1:0;
 		if(count==0)
 			return;
 		for(;count>0 && index<ZenCode.length;index++) {
-			if(ZenCode[index]==close && ZenCode[index-1]!='\\')
+			if(ZenCode.charAt(index)==close && ZenCode.charAt(index-1)!='\\')
 				count--;
-			else if(ZenCode[index]==open && ZenCode[index-1]!='\\')
+			else if(ZenCode.charAt(index)==open && ZenCode.charAt(index-1)!='\\')
 				count++;
 		}
 		var ret = ZenCode.substring(0,index);
@@ -268,10 +271,10 @@
 		ZenCode = ZenCode.substr(forCode.length);
 		var tag = ZenCode.match(regZenTagDfn)[0];
 		ZenCode = ZenCode.substr(tag.length);
-		if(ZenCode.length==0 || ZenCode[0]=='+') {
+		if(ZenCode.length==0 || ZenCode.charAt(0)=='+') {
 			return tag;
 		}
-		else if(ZenCode[0]=='>') {
+		else if(ZenCode.charAt(0)=='>') {
 			var rest = '';
 			rest = parseEnclosure(ZenCode.substr(1),'(',')',1);
 			return tag+'>'+rest;

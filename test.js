@@ -14,7 +14,8 @@ $().ready(function() {
 		var zc = $.zc(ZenCode,data,debug);
 		var ZenMain = $.isPlainObject(ZenCode)?ZenCode.main:ZenCode;
 		if(answer !== undefined) {
-			if(zc==answer)
+			var result = compareElements(zc,answer);
+			if(result.result)
 				pass = '<font color="green">pass</font>';
 			else
 				pass = getFailCode(zc,answer);
@@ -32,9 +33,22 @@ $().ready(function() {
 	}
 
 	function getFailCode(str,answer) {
-		str = htmlEncode(str);
-		answer = htmlEncode(answer);
+		var res = compareElements(str,answer);
+		str = htmlEncode(res.el1);
+		answer = htmlEncode(res.el2);
 		return '<font color="red">fail</font>: <br>'+str+'<br>'+answer;
+	}
+
+	function compareElements(el1, el2) {
+		el1 = $(el1), el2 = $(el2);
+		var strEl1 = $('<div>').append(el1.clone()).html();
+		var strEl2 = $('<div>').append(el2.clone()).html();
+		return {
+			result: (strEl1 == strEl2),
+			el1: strEl1,
+			el2: strEl2
+		}
+		//return el1[0].isEqualNode(el2[0]);
 	}
 
 	test('tag','<tag></tag>');
