@@ -143,21 +143,26 @@
 		return attrs;
 	}
 
-	//returns an entire parenthetical expression taking accout for
-	//internal parentheses.
-	function parseEnclosure(ZenCode,open,close,parenCount) {
+	/*
+	 * There are actually three forms of this function:
+	 *
+	 * parseEnclosure(ZenCode,open) - use open as both open and close
+	 * parseEnclosure(ZenCode,open,close) - specify both
+	 * parseEnclosure(ZenCode,open,close,count) - specify initial count
+	 */
+	function parseEnclosure(ZenCode,open,close,count) {
 		if(close===undefined)
 			close = open;
 		var index = 1;
-		if(parenCount === undefined)
-			parenCount = ZenCode[0]==open?1:0;
-		if(parenCount==0)
+		if(count === undefined)
+			count = ZenCode[0]==open?1:0;
+		if(count==0)
 			return;
-		for(;parenCount>0 && index<ZenCode.length;index++) {
+		for(;count>0 && index<ZenCode.length;index++) {
 			if(ZenCode[index]==close && ZenCode[index-1]!='\\')
-				parenCount--;
+				count--;
 			else if(ZenCode[index]==open && ZenCode[index-1]!='\\')
-				parenCount++;
+				count++;
 		}
 		var ret = ZenCode.substring(0,index);
 		return ret;
