@@ -144,5 +144,6 @@ $().ready(function() {
 	};
 	console.log(ZenContactList2);
 	console.log('sending test 2');
-	test(ZenContactList2,data);
+	var answer = '<div id="msg2">Another Test:</div>'+answer;
+	test(ZenContactList2,data,answer);
 });

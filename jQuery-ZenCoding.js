@@ -6,7 +6,8 @@
 	 * $.zc( ZenCode | ZenObject [, data] )
 	 *
 	 * ZenCode: string to be parsed into HTML
-	 * ZenObject: Collection of ZenCode.  ZenObject.main must be defined
+	 * ZenObject: Collection of ZenCode and ZenObjects.  ZenObject.main must
+	 * be defined
 	 */
  	$.zc = function(ZenCode,data,bLog) {
 		if(bLog!==undefined)
