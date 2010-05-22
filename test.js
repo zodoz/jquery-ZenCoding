@@ -10,7 +10,8 @@ $().ready(function() {
 		/*area.append(
 			$('<div id=\'test('+ZenCode+')\'></div>').append($.zc(ZenCode,data))
 		);*/
-		var zc = $.zc(ZenCode,data);
+		var debug = answer===undefined;
+		var zc = $.zc(ZenCode,data,debug);
 		var ZenMain = $.isPlainObject(ZenCode)?ZenCode.main:ZenCode;
 		if(answer !== undefined) {
 			if(zc==answer)
@@ -19,9 +20,11 @@ $().ready(function() {
 				pass = getFailCode(zc,answer);
 			area.append(
 				$('<div>test: "'+ZenMain+'" -> '+pass+'</div>'));
-		} else
+		} else {
+			console.log('debug = on');
 			area.append(
-				$("<div id='test("+ZenMain+")'>"+$.zc(ZenCode,data,true)+'</div>'));
+				$("<div id='test("+ZenMain+")'>"+zc+'</div>'));
+		}
 	}
 
 	function htmlEncode(str) {
@@ -127,7 +130,19 @@ $().ready(function() {
 		'</ul>';
 	test(zenContacts,data,answer);
 
-	var ZenContactList = '#msg{Test of referencing:}+@contacts';
-	test({main:ZenContactList,contacts:zenContacts},data,
-		'<div id="msg">Test of referencing:</div>'+answer);
+	var ZenContactList = {
+		main: '#msg{Test of referencing:}+@contacts',
+		contacts: zenContacts
+	};
+	var answer = '<div id="msg">Test of referencing:</div>'+answer;
+	console.log('sending test 1');
+	test(ZenContactList,data,answer);
+
+	var ZenContactList2 = {
+		main: '#msg2{Another Test:}+@contacts',
+		contacts: ZenContactList
+	};
+	console.log(ZenContactList2);
+	console.log('sending test 2');
+	test(ZenContactList2,data);
 });
