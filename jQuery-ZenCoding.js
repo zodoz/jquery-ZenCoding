@@ -12,8 +12,6 @@
  	$.zc = function(ZenCode,data,bLog) {
 		if(bLog!==undefined)
 			doLog = bLog;
-		log('doing: ');
-		log(ZenCode);
 		if($.isPlainObject(ZenCode))
 			ZenCode = parseReferences(ZenCode);
 		var el = createHTMLBlock(ZenCode,data);
@@ -70,11 +68,8 @@
 	 */
 	function parseReferences(ZenObject) {
 		var ZenCode = ZenObject.main;
-		log('got ZenCode: '+ZenCode);
-		log(ZenObject);
 		ZenCode = ZenCode.replace(regReference, function(str) {
 			str = str.substr(1);
-			log('str: '+str);
 			var fn = new Function('objs','reparse',
 				'var r="";'+
 				'with(objs){try{'+
@@ -86,7 +81,6 @@
 				'return r;');
 			return fn(ZenObject,parseReferences);
 		});
-		log('converted to: '+ZenCode);
 		return ZenCode;
 	}
 
@@ -98,7 +92,6 @@
 	 */
 	function createHTMLBlock(ZenCode,data,indexes) {
 		var origZenCode = ZenCode;
-		log('parsing: '+ZenCode);
 		// Take care of nested groups
 		if(ZenCode.charAt(0)=='(') {
 			var paren = parseEnclosure(ZenCode,'(',')');
@@ -151,9 +144,7 @@
 				'class': blockClasses,
 				html: blockHTML
 			});
-			console.log(blockAttrs);
 			var el = $('<'+blockTag+'>', blockAttrs);
-			console.log('created: '+outerHTML(el));
 			ZenCode = ZenCode.substr(blocks[0].length);
 		}
 
