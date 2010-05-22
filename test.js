@@ -11,16 +11,17 @@ $().ready(function() {
 			$('<div id=\'test('+ZenCode+')\'></div>').append($.zc(ZenCode,data))
 		);*/
 		var zc = $.zc(ZenCode,data);
+		var ZenMain = $.isPlainObject(ZenCode)?ZenCode.main:ZenCode;
 		if(answer !== undefined) {
 			if(zc==answer)
 				pass = '<font color="green">pass</font>';
 			else
 				pass = getFailCode(zc,answer);
 			area.append(
-				$('<div>test: "'+ZenCode+'" -> '+pass+'</div>'));
+				$('<div>test: "'+ZenMain+'" -> '+pass+'</div>'));
 		} else
 			area.append(
-				$("<div id='test("+ZenCode+")'>"+$.zc(ZenCode,data,true)+'</div>'));
+				$("<div id='test("+ZenMain+")'>"+$.zc(ZenCode,data,true)+'</div>'));
 	}
 
 	function htmlEncode(str) {
@@ -124,5 +125,9 @@ $().ready(function() {
 			'<li>2. two</li>'+
 			'<li>3. three</li>'+
 		'</ul>';
-	test(zenContacts,data,answer);//*/
+	test(zenContacts,data,answer);
+
+	var ZenContactList = '#msg{Test of referencing:}+@contacts';
+	test({main:ZenContactList,contacts:zenContacts},data,
+		'<div id="msg">Test of referencing:</div>'+answer);
 });

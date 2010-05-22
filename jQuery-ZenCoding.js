@@ -1,7 +1,18 @@
 (function($) {
+
+	/*
+	 * Calling conventions:
+	 *
+	 * $.zc( ZenCode | ZenObject [, data] )
+	 *
+	 * ZenCode: string to be parsed into HTML
+	 * ZenObject: Collection of ZenCode.  ZenObject.main must be defined
+	 */
  	$.zc = function(ZenCode,data,bLog) {
 		if(bLog!==undefined)
 			doLog = bLog;
+		if($.isPlainObject(ZenCode))
+			ZenCode = parseReferences(ZenCode);
 		var el = createHTMLBlock(ZenCode,data);
 		return el;
 	};
@@ -38,6 +49,9 @@
 		regClasses = /(\.\w+)/gi,	//finds all classes
 		regClass = /\.(\w+)/i,	//finds the class name of each class
 
+		//finds reference objects
+		regReference = /(@[\w$_][\w$_\d]+)/gi,
+
 		//finds attributes within '[' and ']' of type name or name="value"
 		regAttrDfn = /(\[(\w+(="([^"]|\\")+")? ?)+\])/i,
 		regAttrs = /(\w+(="([^"]|\\")+")?)/gi,	//finds each attribute
@@ -46,6 +60,27 @@
 		//finds content within '{' and '}' while ignoring '\}'
 		regCBrace = /\{(([^\\}]|\\\})+)\}/i,
 		regExclamation = /!(?!for)(([^!]|\\!)+)!/gi;	//finds js within '!'
+
+	/*
+	 * Parses multiple ZenCode references.  The initial ZenCode must be
+	 * declared as ZenObject.main
+	 */
+	function parseReferences(ZenObject) {
+		var ZenCode = ZenObject.main;
+		log('got ZenCode: '+ZenCode);
+		log(ZenObject);
+		ZenCode = ZenCode.replace(regReference, function(str) {
+			str = str.substr(1);
+			log('str: '+str);
+			var fn = new Function('objs',
+				'var r="";'+
+				'with(objs){try{r='+str+';}catch(e){}}'+
+				'return r;');
+			return fn(ZenObject);
+		});
+		log('converted to: '+ZenCode);
+		return ZenCode;
+	}
 
 	/*
 	 * The magic happens here.

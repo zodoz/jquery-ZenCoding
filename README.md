@@ -21,7 +21,11 @@ Usage
 
 **$.zc(ZenCode)** - returns the HTML string represented by the ZenCode string
 
+**$.zc(ZenObject)** - returns the HTML string represented by the ZenObject.main while using the rest of ZenObject for references.
+
 **$.zc(ZenCode, data)** - return the HTML string represented by the ZenCode template using the given data.
+
+**$.zc(ZenObject, data)** - Same as **$.zc(ZenObject)** except that it also references data for javascript parsing.
 
 Examples
 ========
