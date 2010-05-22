@@ -1,8 +1,12 @@
 (function($) {
- 	$.zc = function(ZenCode,data) {
+ 	$.zc = function(ZenCode,data,bLog) {
+		if(bLog!==undefined)
+			doLog = bLog;
 		var el = createHTMLBlock(ZenCode,data);
 		return el;
 	};
+
+	var doLog = false;
 
 	var regZenTagDfn =
 			/*
@@ -11,7 +15,9 @@
 			 *     ([#\.]?\w+)?         # tag names, ids, and classes
 			 *
 			 *     (\[                  # attributes within '[' and ']'
-			 *       (\w+(="\w+")? ?)+  # in form of 'attr' or 'attr="value"'
+			 *       (\w+(="
+			 *       	([^"]|\\")+
+			 *       ")? ?)+            # in form of 'attr' or 'attr="value"'
 			 *     \])?                 # with an optional space
 			 *
 			 *   )+                     # one or more of these make up a tag
@@ -25,16 +31,17 @@
 			 *   \})?
 			 * )
 			 */
-			/((([#\.]?\w+)?(\[(\w+(="[\w:!]+")? ?)+\])?)+(\{([^\\}]|\\\})+\})?)/i,
+			/((([#\.]?\w+)?(\[(\w+(="([^"]|\\")+")? ?)+\])?)+(\{([^\\}]|\\\})+\})?)/i,
 		regTag = /(\w+)/i,	//finds only the first word, must check for now word
 		regId = /#(\w+)/i,	//finds id name
+		regTagNotContent = /((([#\.]?\w+)?(\[(\w+(="([^"]|\\")+")? ?)+\])?)+)/i;
 		regClasses = /(\.\w+)/gi,	//finds all classes
 		regClass = /\.(\w+)/i,	//finds the class name of each class
 
 		//finds attributes within '[' and ']' of type name or name="value"
-		regAttrDfn = /(\[(\w+(="[\w:!]+")? ?)+\])/i,
-		regAttrs = /(\w+(="[\w:!]+")?)/gi,	//finds each attribute
-		regAttr = /(\w+)(="([\w:!]+)")?/i,	//finds individual attribute and value
+		regAttrDfn = /(\[(\w+(="([^"]|\\")+")? ?)+\])/i,
+		regAttrs = /(\w+(="([^"]|\\")+")?)/gi,	//finds each attribute
+		regAttr = /(\w+)(="(([^"]|\\")+)")?/i,	//finds individual attribute and value
 
 		//finds content within '{' and '}' while ignoring '\}'
 		regCBrace = /\{(([^\\}]|\\\})+)\}/i,
@@ -46,7 +53,8 @@
 		if(ZenCode[0]=='(') {	//nested group
 			var paren = parseEnclosure(ZenCode,'(',')');
 			var inner = paren.substring(1,paren.length-1);
-			ZenCode = ZenCode.substring(paren.length,ZenCode.length-1);
+			//ZenCode = ZenCode.substring(paren.length,ZenCode.length-1);
+			ZenCode = ZenCode.substr(paren.length);
 			var el = createHTMLBlock(inner,data);
 		} else if(ZenCode[0]=='!') {	//!for:...!
 			var obj = parseEnclosure(ZenCode,'!');
@@ -74,17 +82,20 @@
 			if(blocks.length < 1)	//no more blocks to match
 				return;
 			var block = blocks[0];	//actual block to create
+			var blockClasses = parseClasses(block);
+			block = parseContents(block,data,indexes);
 			if(regId.test(block))
 				var blockId = regId.exec(block)[1];
-			var blockClasses = parseClasses(block);
 			var blockAttrs = parseAttributes(block,data);
 			var blockTag = 'div';	//default
 			if(ZenCode[0]!='#' && ZenCode[0]!='.')
 				blockTag = regTag.exec(block)[1];	//otherwise
+			if(block.search(regCBrace) != -1)
+				var blockHTML = block.match(regCBrace)[1];
 			blockAttrs = $.extend(blockAttrs, {
 				id: blockId,
 				class: blockClasses,
-				html: parseContents(block,data,indexes)
+				html: blockHTML
 			});
 			var el = $('<'+blockTag+'>', blockAttrs);
 			ZenCode = ZenCode.substr(blocks[0].length);
@@ -105,6 +116,7 @@
 
 	//parses classes out of a single css element definition
 	function parseClasses(ZenBlock) {
+		ZenBlock = ZenBlock.match(regTagNotContent)[0];
 		if(ZenBlock.search(regClasses) == -1)
 			return undefined;
 		var classes = ZenBlock.match(regClasses);
@@ -126,7 +138,7 @@
 			var parts = regAttr.exec(attrStrs[i]);
 			attrs[parts[1]] = '';
 			if(parts[3] !== undefined)
-				attrs[parts[1]] = parseContents('{'+parts[3]+'}',data);
+				attrs[parts[1]] = parseContents(parts[3],data);
 		}
 		return attrs;
 	}
@@ -155,8 +167,9 @@
 		if(indexes===undefined)
 			indexes = {};
 		if(ZenBlock.search(regCBrace) == -1)
-			return '';
-		var html = ZenBlock.match(regCBrace)[1];
+			return ZenBlock;
+		//var html = ZenBlock.match(regCBrace)[1];
+		var html = ZenBlock;
 		if(data===undefined)
 			return html;
 		html = html.replace(regExclamation, function(str) {
@@ -164,7 +177,7 @@
 			var fn = new Function('data','indexes',
 				'var r="";'+
 				'with(data){try{r='+str+';}catch(e){}}'+
-				'with(indexes){try{r='+str+';}catch(e){}}'+
+				'with(indexes){try{if(r=="")r='+str+';}catch(e){}}'+
 				'return r;');
 			return fn(data,indexes);
 		});
@@ -194,6 +207,7 @@
 	}
 
 	function log(obj) {
-		console.log(obj);
+		if(doLog)
+			console.log(obj);
 	}
  })(jQuery);

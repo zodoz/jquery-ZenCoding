@@ -1,52 +1,74 @@
 $().ready(function() {
 	$('#area').val('');
 	var count=0;
-	function test(ZenCode,data) {
+	function test(ZenCode,data,answer) {
+		if(typeof data == 'string') {
+			answer = data;
+			data = undefined;
+		}
 		var area = $('#area');
-		area.append(
+		/*area.append(
 			$('<div id=\'test('+ZenCode+')\'></div>').append($.zc(ZenCode,data))
-		);
+		);*/
+		var zc = $.zc(ZenCode,data);
+		if(answer !== undefined) {
+			if(zc==answer)
+				pass = '<font color="green">pass</font>';
+			else
+				pass = getFailCode(zc,answer);
+			area.append(
+				$('<div>test: "'+ZenCode+'" -> '+pass+'</div>'));
+		} else
+			area.append(
+				$("<div id='test("+ZenCode+")'>"+$.zc(ZenCode,data,true)+'</div>'));
 	}
-	/*
-	- tag
-	- tag#id
-	- tag.class
-	- tag.class.class2
-	- tag#id.class???
-	- tag.class#id???
-	- tag>tag2
-	- tag#id>tag2
-	- tag.class>tag2
-	- tag>tag2#id
-	- tag>tag2.class
-	- tag#id>tag2#id
-	- tag#id>tag2.class
-	- tag.class>tag2#id
-	- tag.class+tag2.class
-	- tag+tag2
-	- tag#id+tag2
-	- tag.class+tag2
-	- tag+tag2#id
-	- tag+tag2.class
-	- tag#id+tag2#id
-	- tag#id+tag2.class
-	- tag.class+tag2#id
-	- tag.class+tag2.class
-	*/
 
-	test('tag');
-	test('tag#id');
-	test('tag.class');
-	test('tag.class.class2');
-	test('tag#id.class.class2');
-	test('tag>tag2+tag3');
-	test('tag+tag2');
-	test('head>link');
-	test('#page>.content>p+.test');
-	test('span[title="Hello" rel]');
-	test('span[title="hello" rel]#name.one.two');
-	test('(div#page>(div#header>ul#nav>li>a)+(h1>span)+p+p)+div#footer');
-	test('#page>(div#header>ul#nav>li>a)+(h1>span)+p+p+#footer');
+	function htmlEncode(str) {
+		return str.replace(/\>/g,'&gt;').replace(/\</g,'&lt;');
+	}
+
+	function getFailCode(str,answer) {
+		str = htmlEncode(str);
+		answer = htmlEncode(answer);
+		return '<font color="red">fail</font>: <br>'+str+'<br>'+answer;
+	}
+
+	test('tag','<tag></tag>');
+	test('tag#id','<tag id="id"></tag>');
+	test('tag.class','<tag class="class"></tag>');
+	test('tag.class.class2','<tag class="class class2"></tag>');
+	test('tag#id.class.class2','<tag class="class class2" id="id"></tag>');
+	test('tag>tag2+tag3','<tag><tag2></tag2><tag3></tag3></tag>');
+	test('tag+tag2','<tag></tag><tag2></tag2>');
+	test('head>link','<head><link></head>');
+	test('#page>.content>p+.test',
+		'<div id="page"><div class="content"><p></p><div class="test">'+
+		'</div></div></div>');
+	test('span[title="Hello" rel]','<span rel="" title="Hello"></span>');
+	test('span[title="Hello" rel]#name.one.two',
+		'<span class="one two" id="name" rel="" title="Hello"></span>');
+	test('(div#page>(div#header>ul#nav>li>a)+(h1>span)+p+p)+div#footer',
+		'<div id="page">'+
+			'<div id="header">'+
+				'<ul id="nav">'+
+					'<li><a></a></li>'+
+				'</ul>'+
+			'</div>'+
+			'<h1><span></span></h1>'+
+			'<p></p><p></p>'+
+		'</div>'+
+		'<div id="footer"></div>');
+	test('#page>(div#header>ul#nav>li>a)+(h1>span)+p+p+#footer',
+		'<div id="page">'+
+			'<div id="header">'+
+				'<ul id="nav">'+
+					'<li><a></a></li>'+
+				'</ul>'+
+			'</div>'+
+			'<h1><span></span></h1>'+
+			'<p></p><p></p>'+
+			'<div id="footer"></div>'+
+		'</div>');
 
 	var data = {
 		contacts: [
@@ -75,9 +97,32 @@ $().ready(function() {
 		'+!for:contacts!'+
 			'.contact>'+
 				'(.name{!name!}'+
-				'+.email>a.email[href="mailto:!email!"]{email}'+
+				'+(.email>a.email[href="mailto:!email!"]{email})'+
 				'+.info{!bio!})'+
 		'+.message{hi!}'+
-		'+ul>!for:i:list!li{!(i+1).toFixed(3)!. !value!}';
-	test(zenContacts,data);
+		'+ul>!for:i:list!li{!(i+1)!. !value!}';
+
+	var answer =
+		'<div id="comment">There are 2 contacts:</div>'+
+		'<div class="contact">'+
+			'<div class="name">Bob</div>'+
+			'<div class="email">'+
+				'<a class="email" href="mailto:bob@s.com">email</a>'+
+			'</div>'+
+			'<div class="info">Some stuff Bob does.</div>'+
+		'</div>'+
+		'<div class="contact">'+
+			'<div class="name">Jill</div>'+
+			'<div class="email">'+
+				'<a class="email" href="mailto:jill@s.com">email</a>'+
+			'</div>'+
+			'<div class="info">Some stuff Jill does.</div>'+
+		'</div>'+
+		'<div class="message">hi!</div>'+
+		'<ul>'+
+			'<li>1. one</li>'+
+			'<li>2. two</li>'+
+			'<li>3. three</li>'+
+		'</ul>';
+	test(zenContacts,data,answer);//*/
 });
