@@ -34,7 +34,7 @@
 			/((([#\.]?\w+)?(\[(\w+(="([^"]|\\")+")? ?)+\])?)+(\{([^\\}]|\\\})+\})?)/i,
 		regTag = /(\w+)/i,	//finds only the first word, must check for now word
 		regId = /#(\w+)/i,	//finds id name
-		regTagNotContent = /((([#\.]?\w+)?(\[(\w+(="([^"]|\\")+")? ?)+\])?)+)/i;
+		regTagNotContent = /((([#\.]?\w+)?(\[(\w+(="([^"]|\\")+")? ?)+\])?)+)/i,
 		regClasses = /(\.\w+)/gi,	//finds all classes
 		regClass = /\.(\w+)/i,	//finds the class name of each class
 
@@ -45,18 +45,25 @@
 
 		//finds content within '{' and '}' while ignoring '\}'
 		regCBrace = /\{(([^\\}]|\\\})+)\}/i,
-		regExclamation = /!(([^!]|\\!)+)!/gi;	//finds js within '!'
+		regExclamation = /!(?!for)(([^!]|\\!)+)!/gi;	//finds js within '!'
 
-	//TODO: should filters, and E*N and E*N$ be implemented?
+	/*
+	 * The magic happens here.
+	 *
+	 * This is the recursive function to break up, parse, and create every
+	 * element.
+	 */
 	function createHTMLBlock(ZenCode,data,indexes) {
 		var origZenCode = ZenCode;
-		if(ZenCode[0]=='(') {	//nested group
+		// Take care of nested groups
+		if(ZenCode[0]=='(') {
 			var paren = parseEnclosure(ZenCode,'(',')');
 			var inner = paren.substring(1,paren.length-1);
-			//ZenCode = ZenCode.substring(paren.length,ZenCode.length-1);
 			ZenCode = ZenCode.substr(paren.length);
 			var el = createHTMLBlock(inner,data);
-		} else if(ZenCode[0]=='!') {	//!for:...!
+		}
+		// Take care of !for:...! structure
+		else if(ZenCode[0]=='!') {	//!for:...!
 			var obj = parseEnclosure(ZenCode,'!');
 			obj = obj.substring(5,obj.length-1);
 			if(obj.indexOf(':')>0) {
@@ -77,7 +84,9 @@
 				el = outerHTML($([outerHTML(el), outerHTML(next)].join('')));
 			});
 			ZenCode = ZenCode.substr(obj.length+6+forScope.length);
-		} else {
+		}
+		// Everything left should be a regular block
+		else {
 			var blocks = ZenCode.match(regZenTagDfn);
 			if(blocks.length < 1)	//no more blocks to match
 				return;
@@ -100,11 +109,15 @@
 			var el = $('<'+blockTag+'>', blockAttrs);
 			ZenCode = ZenCode.substr(blocks[0].length);
 		}
+
+		// Recurse based on '+' or '>'
 		if(ZenCode.length > 0) {
+			// Create siblings
 			if(ZenCode[0] == '+') {
 				var el2 = createHTMLBlock(ZenCode.substr(1),data);
 				var el = $([outerHTML(el), outerHTML(el2)].join(''));
 			}
+			// Create children
 			else if(ZenCode[0] == '>') {
 				var els = $(createHTMLBlock(ZenCode.substr(1),data));
 				els.appendTo(el);
@@ -114,7 +127,10 @@
 		return ret;
 	}
 
-	//parses classes out of a single css element definition
+	/*
+	 * parses classes out of a single css element definition
+	 * returns as a space delimited string of classes
+	 */
 	function parseClasses(ZenBlock) {
 		ZenBlock = ZenBlock.match(regTagNotContent)[0];
 		if(ZenBlock.search(regClasses) == -1)
@@ -127,7 +143,10 @@
 		return clsString.trim();
 	}
 
-	//parses attributes out of a single css element definition
+	/*
+	 * parses attributes out of a single css element definition
+	 * returns as a space delimited string of attributes and their values
+	 */
 	function parseAttributes(ZenBlock, data) {
 		if(ZenBlock.search(regAttrDfn) == -1)
 			return undefined;
@@ -168,12 +187,14 @@
 		return ret;
 	}
 
+	/*
+	 * Converts !...! into its javascript equivelant.
+	 */
 	function parseContents(ZenBlock, data, indexes) {
 		if(indexes===undefined)
 			indexes = {};
 		if(ZenBlock.search(regCBrace) == -1)
 			return ZenBlock;
-		//var html = ZenBlock.match(regCBrace)[1];
 		var html = ZenBlock;
 		if(data===undefined)
 			return html;
@@ -189,6 +210,13 @@
 		return html;
 	}
 
+	/*
+	 * Parses the scope of a !for:...!
+	 *
+	 * The scope of !for:...! is:
+	 *   If the tag has no children, then only immeiately following tag
+	 *   Tag and its children
+	 */
 	function parseForScope(ZenCode) {
 		if(ZenCode.substring(0,5)!="!for:")
 			return undefined;
@@ -207,6 +235,14 @@
 		return undefined;
 	}
 
+	/*
+	 * jQuery has no way to "unwrap" itself from the containing element,
+	 * so this method "wraps" the element in a <div>, and then gets the
+	 * contained HTML, thus retrieving the HTML for the contained element.
+	 *
+	 * It is cludgy, and proably a time hog.  More testing is needed to see
+	 * if there is a better/faster way.
+	 */
 	function outerHTML(el) {
 		return $('<div>').append($(el)).html();
 	}
