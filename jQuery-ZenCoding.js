@@ -11,6 +11,8 @@
  	$.zc = function(ZenCode,data,bLog) {
 		if(bLog!==undefined)
 			doLog = bLog;
+		log('doing: ');
+		log(ZenCode);
 		if($.isPlainObject(ZenCode))
 			ZenCode = parseReferences(ZenCode);
 		var el = createHTMLBlock(ZenCode,data);
@@ -72,11 +74,16 @@
 		ZenCode = ZenCode.replace(regReference, function(str) {
 			str = str.substr(1);
 			log('str: '+str);
-			var fn = new Function('objs',
+			var fn = new Function('objs','reparse',
 				'var r="";'+
-				'with(objs){try{r='+str+';}catch(e){}}'+
+				'with(objs){try{'+
+					'if($.isPlainObject('+str+'))'+
+						'r=reparse('+str+');'+
+					'else '+
+						'r='+str+';'+
+				'}catch(e){}}'+
 				'return r;');
-			return fn(ZenObject);
+			return fn(ZenObject,parseReferences);
 		});
 		log('converted to: '+ZenCode);
 		return ZenCode;
@@ -90,6 +97,7 @@
 	 */
 	function createHTMLBlock(ZenCode,data,indexes) {
 		var origZenCode = ZenCode;
+		log('parsing: '+ZenCode);
 		// Take care of nested groups
 		if(ZenCode[0]=='(') {
 			var paren = parseEnclosure(ZenCode,'(',')');
