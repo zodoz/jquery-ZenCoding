@@ -149,15 +149,12 @@ $().ready(function() {
 		contacts: zenContacts
 	};
 	var answer = '<div id="msg">Test of referencing:</div>'+answer;
-	console.log('sending test 1');
 	test(ZenContactList,data,answer);
 
 	var ZenContactList2 = {
 		main: '#msg2{Another Test:}+@contacts',
 		contacts: ZenContactList
 	};
-	console.log(ZenContactList2);
-	console.log('sending test 2');
 	var answer = '<div id="msg2">Another Test:</div>'+answer;
 	test(ZenContactList2,data,answer);
 });
