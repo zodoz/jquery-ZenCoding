@@ -99,31 +99,40 @@
 			ZenCode = ZenCode.substr(paren.length);
 			var el = createHTMLBlock(inner,data);
 		}
-		// Take care of !for:...! structure
-		else if(ZenCode.charAt(0)=='!') {	//!for:...!
+		// Take care of !for:...! and !if:...! structure
+		else if(ZenCode.charAt(0)=='!') {
 			var obj = parseEnclosure(ZenCode,'!');
-			obj = obj.substring(5,obj.length-1);
-			if(obj.indexOf(':')>0) {
-				var indexName = obj.substring(0,obj.indexOf(':'));
-				if(indexes === undefined)
-					indexes = {};
-				obj = obj.substr(obj.indexOf(':')+1);
-			}
-			var forScope = parseForScope(ZenCode);
+			obj = obj.substring(obj.indexOf(':')+1,obj.length-1);
+			var forScope = parseVariableScope(ZenCode);
 			var el = '';
-			$.map(data[obj], function(value, index) {
-				if(indexName!==undefined) {
-					indexes[indexName] = index;
+			if(ZenCode.substring(0,5)=="!for:") {  //!for:...!
+				if(obj.indexOf(':')>0) {
+					var indexName = obj.substring(0,obj.indexOf(':'));
+					if(indexes === undefined)
+						indexes = {};
+					obj = obj.substr(obj.indexOf(':')+1);
 				}
-				if(!$.isPlainObject(value))
-					value = {value:value};
-				var next = createHTMLBlock(forScope,value,indexes);
-				el = outerHTML($([outerHTML(el), outerHTML(next)].join('')));
-			});
-			ZenCode = ZenCode.substr(obj.length+6+forScope.length);
+				$.map(data[obj], function(value, index) {
+					if(indexName!==undefined) {
+						indexes[indexName] = index;
+					}
+					if(!$.isPlainObject(value))
+						value = {value:value};
+					var next = createHTMLBlock(forScope,value,indexes);
+					el = outerHTML($([outerHTML(el), outerHTML(next)].join('')));
+				});
+				ZenCode = ZenCode.substr(obj.length+6+forScope.length);
+			} else if(ZenCode.substring(0,4)=="!if:") {  //!if:...!
+				var result = parseContents('!'+obj+'!',data,indexes);
+				if(result!='undefined' || result!='false' || result!='')
+					el = createHTMLBlock(forScope,data,indexes);
+				ZenCode = ZenCode.substr(obj.length+5+forScope.length);
+			}
 		}
 		// Everything left should be a regular block
 		else {
+			/*if(ZenCode.length<=0)
+				return '';*/
 			var blocks = ZenCode.match(regZenTagDfn);
 			if(blocks.length < 1)	//no more blocks to match
 				return;
@@ -134,7 +143,6 @@
 				var blockId = regId.exec(block)[1];
 			var blockAttrs = parseAttributes(block,data);
 			var blockTag = 'div';	//default
-
 			if(ZenCode.charAt(0)!='#' && ZenCode.charAt(0)!='.')
 				blockTag = regTag.exec(block)[1];	//otherwise
 			if(block.search(regCBrace) != -1)
@@ -231,17 +239,17 @@
 	function parseContents(ZenBlock, data, indexes) {
 		if(indexes===undefined)
 			indexes = {};
-		if(ZenBlock.search(regCBrace) == -1)
-			return ZenBlock;
+		/*if(ZenBlock.search(regCBrace) == -1)
+			return ZenBlock;*/
 		var html = ZenBlock;
 		if(data===undefined)
 			return html;
 		html = html.replace(regExclamation, function(str) {
 			str = str.substring(1,str.length-1);
 			var fn = new Function('data','indexes',
-				'var r="";'+
+				'var r=undefined;'+
 				'with(data){try{r='+str+';}catch(e){}}'+
-				'with(indexes){try{if(r=="")r='+str+';}catch(e){}}'+
+				'with(indexes){try{if(r===undefined)r='+str+';}catch(e){}}'+
 				'return r;');
 			return fn(data,indexes);
 		});
@@ -255,8 +263,9 @@
 	 *   If the tag has no children, then only immeiately following tag
 	 *   Tag and its children
 	 */
-	function parseForScope(ZenCode) {
-		if(ZenCode.substring(0,5)!="!for:")
+	function parseVariableScope(ZenCode) {
+		if(ZenCode.substring(0,5)!="!for:" &&
+				ZenCode.substring(0,4)!="!if:")
 			return undefined;
 		var forCode = parseEnclosure(ZenCode,'!');
 		ZenCode = ZenCode.substr(forCode.length);

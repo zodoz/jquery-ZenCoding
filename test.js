@@ -7,12 +7,10 @@ $().ready(function() {
 			data = undefined;
 		}
 		var area = $('#area');
-		);*/
 		var debug = answer===undefined;
 		var zc = $.zc(ZenCode,data,debug);
 		var ZenMain = $.isPlainObject(ZenCode)?ZenCode.main:ZenCode;
 		if(answer !== undefined) {
-			console.log('Testing: '+ZenCode);
 			var result = compareElements(zc,answer);
 			if(result.result)
 				pass = '<font color="green">pass</font>';
@@ -92,13 +90,7 @@ $().ready(function() {
 				name: 'Bob',
 				email: 'bob@s.com',
 				bio: 'Some stuff Bob does.',
-				children: [
-					{
-						name: 'boy'
-					}, {
-						name: 'girl'
-					}
-				]
+				children: ["boy","girl"]
 			}, {
 				name: 'Jill',
 				email: 'jill@s.com',
@@ -155,4 +147,23 @@ $().ready(function() {
 	};
 	var answer = '<div id="msg2">Another Test:</div>'+answer;
 	test(ZenContactList2,data,answer);
+
+	var zen =
+		'.contacts>'+
+			'!if:contacts.length>0!ul>!for:contacts!li'+
+				'{!name!}'+// !children?"has children:":""!}'+
+			'>!if:children!ul>!for:children!li{!value!}';
+	var answer =
+		'<div class="contacts">'+
+			'<ul>'+
+				'<li>Bob'+
+					'<ul>'+
+						'<li>boy</li>'+
+						'<li>girl</li>'+
+					'</ul>'+
+				'</li>'+
+				'<li>Jill</li>'+
+			'</ul>'+
+		'</div>';
+	test(zen,data,answer);
 });
