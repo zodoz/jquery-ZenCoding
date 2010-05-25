@@ -43,9 +43,9 @@
 			 *   \})?
 			 * )
 			 */
-			/((([#\.]?\w+)?(\[(\w+(="([^"]|\\")+")? ?)+\])?)+(\{([^\\}]|\\\})+\})?)/i,
+			/((([#\.]?[\w!]+)?(\[(\w+(="([^"]|\\")+")? ?)+\])?)+(\{([^\\}]|\\\})+\})?)/i,
 		regTag = /(\w+)/i,	//finds only the first word, must check for now word
-		regId = /#(\w+)/i,	//finds id name
+		regId = /#([\w!]+)/i,	//finds id name
 		regTagNotContent = /((([#\.]?\w+)?(\[(\w+(="([^"]|\\")+")? ?)+\])?)+)/i,
 		regClasses = /(\.\w+)/gi,	//finds all classes
 		regClass = /\.(\w+)/i,	//finds the class name of each class
@@ -137,8 +137,8 @@
 			if(blocks.length < 1)	//no more blocks to match
 				return;
 			var block = blocks[0];	//actual block to create
-			var blockClasses = parseClasses(block);
 			block = parseContents(block,data,indexes);
+			var blockClasses = parseClasses(block);
 			if(regId.test(block))
 				var blockId = regId.exec(block)[1];
 			var blockAttrs = parseAttributes(block,data);

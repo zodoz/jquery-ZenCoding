@@ -166,4 +166,36 @@ $().ready(function() {
 			'</ul>'+
 		'</div>';
 	test(zen,data,answer);
+
+	var data = {
+		contacts: [
+			{
+				name: 'Bob',
+				email: 'bob@s.com',
+				bio: 'Some stuff Bob does.',
+				children: [
+					{
+						name: 'Cody',
+						sex: 'male'
+					}, {
+						name: 'Julie',
+						sex: 'female'
+					}
+				]
+			}
+		]
+	};
+	var Zen =
+		'ul>!for:contacts!li{!name!}>'+
+			'!if:children.length>0!ul>!for:children!li.!sex!{!name!}';
+	var answer =
+		'<ul>'+
+			'<li>Bob'+
+				'<ul>'+
+					'<li class="male">Cody</li>'+
+					'<li class="female">Julie</li>'+
+				'</ul>'+
+			'</li>'+
+		'</ul>';
+	test(Zen,data,answer);
 });
