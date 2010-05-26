@@ -176,10 +176,10 @@ $().ready(function() {
 				children: [
 					{
 						name: 'Cody',
-						sex: 'male'
+						gender: 'male'
 					}, {
 						name: 'Julie',
-						sex: 'female'
+						gender: 'female'
 					}
 				]
 			}
@@ -187,7 +187,7 @@ $().ready(function() {
 	};
 	var Zen =
 		'ul>!for:contacts!li{!name!}>'+
-			'!if:children.length>0!ul>!for:children!li.!sex!{!name!}';
+			'!if:children.length>0!ul>!for:children!li.!gender!{!name!}';
 	var answer =
 		'<ul>'+
 			'<li>Bob'+
