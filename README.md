@@ -14,6 +14,8 @@ Now for some new stuff:
 
  * **!...!** - Everything contained within exclamation points is interperted as javascript code, and the restult of which is used in its place in the final HTML.
  * **!for:...!E** - This tells the next items to loop through an array, and use its values instead of the data as a whole.
+ * **!for:index:...!E** - Same as **!for:...!E** except it stores the array index as 'index'.
+ * **!if:...!E** - Only processes E if the contents in '...' are true.
  * **E{...}** - Everything within '{' and '}' are the contents of E.
 
 Usage
