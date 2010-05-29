@@ -21,7 +21,7 @@ $().ready(function() {
 		} else {
 			console.log('debug = on');
 			area.append(
-				$("<div id='test("+ZenMain+")'>"+zc+'</div>'));
+				$("<div>").append(zc));
 		}
 	}
 
@@ -198,4 +198,16 @@ $().ready(function() {
 			'</li>'+
 		'</ul>';
 	test(Zen,data,answer);
+
+	var testfn = function(evt) {
+		console.log('running test function');
+		console.log(evt);
+	}
+	var zen = 'div[style="cursor:pointer"]-click=testfn{click me!}-dblclick=testfn';
+	var data = {
+		functions: {
+			testfn: testfn
+		}
+	};
+	test(zen,data);
 });

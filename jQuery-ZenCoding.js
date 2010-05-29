@@ -29,8 +29,10 @@
 			doLog = bLog;
 		if($.isPlainObject(ZenCode))
 			ZenCode = parseReferences(ZenCode);
-		var functions = data.functions;
+		if(data !== undefined)
+			var functions = data.functions;
 		var el = createHTMLBlock(ZenCode,data,functions);
+		log('returning: '+el);
 		return el;
 	};
 
@@ -78,6 +80,10 @@
 		//finds content within '{' and '}' while ignoring '\}'
 		regCBrace = /\{(([^\\}]|\\\})+)\}/i,
 		regExclamation = /!(?!for)(([^!]|\\!)+)!/gi;	//finds js within '!'
+		
+		//finds events in form of -event=function
+		regEvents = /-[\w$]+=[\w$]+/gi;
+		regEvent = /-([\w$]+)=([\w$]+)/i;
 
 	/*
 	 * Parses multiple ZenCode references.  The initial ZenCode must be
@@ -107,6 +113,7 @@
 	 * This is the recursive function to break up, parse, and create every
 	 * element.
 	 */
+	//TODO: fix to use jquery wrapped elements instead so that events work properly.
 	function createHTMLBlock(ZenCode,data,functions,indexes) {
 		var origZenCode = ZenCode;
 		// Take care of nested groups
@@ -170,6 +177,7 @@
 				html: blockHTML
 			});
 			var el = $('<'+blockTag+'>', blockAttrs);
+			el = bindEvents(block, el, functions);
 			ZenCode = ZenCode.substr(blocks[0].length);
 		}
 
@@ -188,7 +196,9 @@
 				els.appendTo(el);
 			}
 		}
-		var ret = outerHTML(el);
+		//var ret = outerHTML(el);
+		var ret = el;
+		//log('returning: '+ret);
 		return ret;
 	}
 
@@ -299,6 +309,23 @@
 			return tag+'>'+rest;
 		}
 		return undefined;
+	}
+
+	function bindEvents(ZenCode, el, functions) {
+		if(ZenCode.search(regEvents) == 0)
+			return el;
+		var bindings = ZenCode.match(regEvents);
+		log(bindings);
+		if(bindings === null)
+			return el;
+		for(var i=0;i<bindings.length;i++) {
+			var split = regEvent.exec(bindings[i]);
+			var fn = functions[split[2]] || split[2];
+			$(el).bind(split[1],fn);
+			log(bindings[i]);
+			log(split);
+		}
+		return el;
 	}
 
 	/*
