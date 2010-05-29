@@ -1,3 +1,18 @@
+//TODO: What if data is only a single array, string, number, etc.
+//TODO: Allow for setting jQuery events (like click), and storing data
+	/* Allowing events:
+	 *
+	 * E-event=function
+	 */
+//TODO: Allow Zen within {...}?
+	/* Zen within {...} should probably be done as:
+	 *
+	 * span.info>(
+	 *  a{link}+
+	 *  {pure text}+
+	 *  tag
+	 * )
+	 */
 (function($) {
 
 	/*
@@ -14,7 +29,8 @@
 			doLog = bLog;
 		if($.isPlainObject(ZenCode))
 			ZenCode = parseReferences(ZenCode);
-		var el = createHTMLBlock(ZenCode,data);
+		var functions = data.functions;
+		var el = createHTMLBlock(ZenCode,data,functions);
 		return el;
 	};
 
@@ -43,7 +59,8 @@
 			 *   \})?
 			 * )
 			 */
-			/((([#\.]?[\w!]+)?(\[(\w+(="([^"]|\\")+")? ?)+\])?)+(\{([^\\}]|\\\})+\})?)/i,
+			//((([#\.]?[\w!]+)?(\[(\w+(="([^"]|\\")+")? ?)+\])?)+(\{([^\\}]|\\\})+\})?)/i,	//old but worked...  doesn't have -event=function
+			/([#\.]?[\w!]+|\[(\w+(="([^"]|\\")+")? ?)+\]|-[\w$]+=[\w$]+|\{([^\\}]|\\\})+\})+/i,
 		regTag = /(\w+)/i,	//finds only the first word, must check for now word
 		regId = /#([\w!]+)/i,	//finds id name
 		regTagNotContent = /((([#\.]?\w+)?(\[(\w+(="([^"]|\\")+")? ?)+\])?)+)/i,
@@ -90,14 +107,14 @@
 	 * This is the recursive function to break up, parse, and create every
 	 * element.
 	 */
-	function createHTMLBlock(ZenCode,data,indexes) {
+	function createHTMLBlock(ZenCode,data,functions,indexes) {
 		var origZenCode = ZenCode;
 		// Take care of nested groups
 		if(ZenCode.charAt(0)=='(') {
 			var paren = parseEnclosure(ZenCode,'(',')');
 			var inner = paren.substring(1,paren.length-1);
 			ZenCode = ZenCode.substr(paren.length);
-			var el = createHTMLBlock(inner,data);
+			var el = createHTMLBlock(inner,data,functions,indexes);
 		}
 		// Take care of !for:...! and !if:...! structure
 		else if(ZenCode.charAt(0)=='!') {
@@ -118,14 +135,14 @@
 					}
 					if(!$.isPlainObject(value))
 						value = {value:value};
-					var next = createHTMLBlock(forScope,value,indexes);
+					var next = createHTMLBlock(forScope,value,functions,indexes);
 					el = outerHTML($([outerHTML(el), outerHTML(next)].join('')));
 				});
 				ZenCode = ZenCode.substr(obj.length+6+forScope.length);
 			} else if(ZenCode.substring(0,4)=="!if:") {  //!if:...!
 				var result = parseContents('!'+obj+'!',data,indexes);
 				if(result!='undefined' || result!='false' || result!='')
-					el = createHTMLBlock(forScope,data,indexes);
+					el = createHTMLBlock(forScope,data,functions,indexes);
 				ZenCode = ZenCode.substr(obj.length+5+forScope.length);
 			}
 		}
@@ -160,12 +177,14 @@
 		if(ZenCode.length > 0) {
 			// Create siblings
 			if(ZenCode.charAt(0) == '+') {
-				var el2 = createHTMLBlock(ZenCode.substr(1),data);
+				var el2 = createHTMLBlock(ZenCode.substr(1),data,functions,indexes);
 				var el = $([outerHTML(el), outerHTML(el2)].join(''));
 			}
 			// Create children
 			else if(ZenCode.charAt(0) == '>') {
-				var els = $(createHTMLBlock(ZenCode.substr(1),data));
+				var els = $(
+					createHTMLBlock(ZenCode.substr(1),data,functions,indexes)
+				);
 				els.appendTo(el);
 			}
 		}
