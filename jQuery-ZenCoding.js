@@ -1,3 +1,14 @@
+//TODO: What if data is only a single array, string, number, etc.
+//TODO: Allow for setting jQuery events (like click), and storing data
+//TODO: Allow Zen within {...}?
+	/* Zen within {...} should probably be done as:
+	 *
+	 * span.info>(
+	 *  a{link}+
+	 *  {pure text}+
+	 *  tag
+	 * )
+	 */
 (function($) {
 
 	/*
