@@ -117,15 +117,8 @@
 	//TODO: fix to use jquery wrapped elements instead so that events work properly.
 	function createHTMLBlock(ZenCode,data,functions,indexes) {
 		var origZenCode = ZenCode;
-		// Take care of nested groups
-		if(ZenCode.charAt(0)=='(') {
-			var paren = parseEnclosure(ZenCode,'(',')');
-			var inner = paren.substring(1,paren.length-1);
-			ZenCode = ZenCode.substr(paren.length);
-			var el = createHTMLBlock(inner,data,functions,indexes);
-		}
-		// Take care of !for:...! and !if:...! structure
-		else if(ZenCode.charAt(0)=='!') {
+		// Take care of !for:...! and !if:...! structure and if $.isArray(data)
+		if(ZenCode.charAt(0)=='!' || $.isArray(data)) {
 			var obj = parseEnclosure(ZenCode,'!');
 			obj = obj.substring(obj.indexOf(':')+1,obj.length-1);
 			var forScope = parseVariableScope(ZenCode);
@@ -159,6 +152,13 @@
 					el = createHTMLBlock(forScope,data,functions,indexes);
 				ZenCode = ZenCode.substr(obj.length+5+forScope.length);
 			}
+		}
+		// Take care of nested groups
+		else if(ZenCode.charAt(0)=='(') {
+			var paren = parseEnclosure(ZenCode,'(',')');
+			var inner = paren.substring(1,paren.length-1);
+			ZenCode = ZenCode.substr(paren.length);
+			var el = createHTMLBlock(inner,data,functions,indexes);
 		}
 		// Everything left should be a regular block
 		else {
