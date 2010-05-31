@@ -128,7 +128,7 @@
 			var obj = parseEnclosure(ZenCode,'!');
 			obj = obj.substring(obj.indexOf(':')+1,obj.length-1);
 			var forScope = parseVariableScope(ZenCode);
-			var el = '';
+			var el = undefined;
 			if(ZenCode.substring(0,5)=="!for:") {  //!for:...!
 				if(obj.indexOf(':')>0) {
 					var indexName = obj.substring(0,obj.indexOf(':'));
@@ -143,7 +143,13 @@
 					if(!$.isPlainObject(value))
 						value = {value:value};
 					var next = createHTMLBlock(forScope,value,functions,indexes);
-					el = outerHTML($([outerHTML(el), outerHTML(next)].join('')));
+					if(el === undefined)
+						el = next;
+					else {
+						$.each(next, function(index,value) {
+							el.push(value);
+						});
+					}
 				});
 				ZenCode = ZenCode.substr(obj.length+6+forScope.length);
 			} else if(ZenCode.substring(0,4)=="!if:") {  //!if:...!
@@ -186,7 +192,10 @@
 			// Create siblings
 			if(ZenCode.charAt(0) == '+') {
 				var el2 = createHTMLBlock(ZenCode.substr(1),data,functions,indexes);
-				var el = $([outerHTML(el), outerHTML(el2)].join(''));
+				console.log(el);
+				$.each(el2, function(index,value) {
+					el.push(value);
+				});
 			}
 			// Create children
 			else if(ZenCode.charAt(0) == '>') {
@@ -196,9 +205,7 @@
 				els.appendTo(el);
 			}
 		}
-		//var ret = outerHTML(el);
 		var ret = el;
-		//log('returning: '+ret);
 		return ret;
 	}
 
@@ -335,6 +342,8 @@
 	 *
 	 * It is cludgy, and proably a time hog.  More testing is needed to see
 	 * if there is a better/faster way.
+	 *
+	 * !!!!  New method doesn't use this !!!!
 	 */
 	function outerHTML(el) {
 		return $('<div>').append($(el)).html();
