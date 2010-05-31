@@ -171,8 +171,9 @@
 			if(regId.test(block))
 				var blockId = regId.exec(block)[1];
 			var blockAttrs = parseAttributes(block,data);
-			var blockTag = block.charAt(0)=='{':'span','div';	//default
-			if(ZenCode.charAt(0)!='#' && ZenCode.charAt(0)!='.')
+			var blockTag = block.charAt(0)=='{'?'span':'div';	//default
+			if(ZenCode.charAt(0)!='#' && ZenCode.charAt(0)!='.' &&
+					ZenCode.charAt(0)!='{')
 				blockTag = regTag.exec(block)[1];	//otherwise
 			if(block.search(regCBrace) != -1)
 				var blockHTML = block.match(regCBrace)[1];

@@ -199,6 +199,13 @@ $().ready(function() {
 		'</ul>';
 	test(Zen,data,answer);
 
+	var zen =
+		'.div>('+
+			'a[href="#"]{link}'+
+			'+{ to somewhere.}'+
+		')';
+	test(zen,data);
+
 	var testfn = function(evt) {
 		console.log('running test function');
 		console.log(evt);
