@@ -62,7 +62,8 @@
 			 * )
 			 */
 			//((([#\.]?[\w!]+)?(\[(\w+(="([^"]|\\")+")? ?)+\])?)+(\{([^\\}]|\\\})+\})?)/i,	//old but worked...  doesn't have -event=function
-			/([#\.]?[\w!]+|\[(\w+(="([^"]|\\")+")? ?)+\]|-[\w$]+=[\w$]+|\{([^\\}]|\\\})+\})+/i,
+			//([#\.]?[\w!]+|\[(\w+(="([^"]|\\")+")? ?)+\]|-[\w$]+=[\w$]+|\{([^\\}]|\\\})+\})+/i, -- includes events
+			/([#\.]?[\w!]+|\[(\w+(="([^"]|\\")+")? ?)+\]|-[\w$]+=[\w$]+){0,}(\{([^\\}]|\\\})+\})?/i,
 		regTag = /(\w+)/i,	//finds only the first word, must check for now word
 		regId = /#([\w!]+)/i,	//finds id name
 		regTagNotContent = /((([#\.]?\w+)?(\[(\w+(="([^"]|\\")+")? ?)+\])?)+)/i,
@@ -161,8 +162,6 @@
 		}
 		// Everything left should be a regular block
 		else {
-			/*if(ZenCode.length<=0)
-				return '';*/
 			var blocks = ZenCode.match(regZenTagDfn);
 			if(blocks.length < 1)	//no more blocks to match
 				return;
@@ -172,7 +171,7 @@
 			if(regId.test(block))
 				var blockId = regId.exec(block)[1];
 			var blockAttrs = parseAttributes(block,data);
-			var blockTag = 'div';	//default
+			var blockTag = block.charAt(0)=='{':'span','div';	//default
 			if(ZenCode.charAt(0)!='#' && ZenCode.charAt(0)!='.')
 				blockTag = regTag.exec(block)[1];	//otherwise
 			if(block.search(regCBrace) != -1)
@@ -192,7 +191,6 @@
 			// Create siblings
 			if(ZenCode.charAt(0) == '+') {
 				var el2 = createHTMLBlock(ZenCode.substr(1),data,functions,indexes);
-				console.log(el);
 				$.each(el2, function(index,value) {
 					el.push(value);
 				});
