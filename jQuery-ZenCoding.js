@@ -34,7 +34,9 @@
 			 *      ?)+                 # allow spaces, and look for 1+ attributes
 			 *   \]
 			 *   |
-			 *   -[\w$]+=[\2$]+         # events in form -event=function
+			 *   -[\w$]+=[\w$]+         # events in form -event=function
+			 *   |
+			 *   &[\w$\+(=[\w$]+)?      # data in form &data[=variable]
 			 * ){0,}                    # 0 or more of the above
 			 * (\{                      # contents
 			 *   ([^\\}]
@@ -42,7 +44,7 @@
 			 *   \\\})+                 # find all before }, but include \}
 			 * \})?
 			 */
-			/([#\.]?[\w!]+|\[(\w+(="([^"]|\\")+")? ?)+\]|-[\w$]+=[\w$]+){0,}(\{([^\\}]|\\\})+\})?/i,
+			/([#\.]?[\w!]+|\[(\w+(="([^"]|\\")+")? ?)+\]|-[\w$]+=[\w$]+|&[\w$]+(=[\w$]+)?){0,}(\{([^\\}]|\\\})+\})?/i,
 		regTag = /(\w+)/i,	//finds only the first word, must check for now word
 		regId = /#([\w!]+)/i,	//finds id name
 		regTagNotContent = /((([#\.]?\w+)?(\[(\w+(="([^"]|\\")+")? ?)+\])?)+)/i,
@@ -59,11 +61,15 @@
 
 		//finds content within '{' and '}' while ignoring '\}'
 		regCBrace = /\{(([^\\}]|\\\})+)\}/i,
-		regExclamation = /!(?!for)(([^!]|\\!)+)!/gi;	//finds js within '!'
+		regExclamation = /!(?!for)(([^!]|\\!)+)!/gi,	//finds js within '!'
 		
 		//finds events in form of -event=function
-		regEvents = /-[\w$]+=[\w$]+/gi;
-		regEvent = /-([\w$]+)=([\w$]+)/i;
+		regEvents = /-[\w$]+=[\w$]+/gi,
+		regEvent = /-([\w$]+)=([\w$]+)/i,
+		
+		//find data in form &data or &dataname=data
+		regDatas = /&[\w$]+(=[\w$]+)?/gi,
+		regData = /&([\w$]+)(=([\w$]+))?/i;
 
 	/*
 	 * Parses multiple ZenCode references.  The initial ZenCode must be
@@ -95,7 +101,8 @@
 	 */
 	//TODO: fix to use jquery wrapped elements instead so that events work properly.
 	function createHTMLBlock(ZenCode,data,functions,indexes) {
-		var origZenCode = ZenCode
+		var origZenCode = ZenCode;
+		log('parsing: '+ZenCode);
 		if(indexes === undefined)
 			indexes = {};
 		// Take care of !for:...! and !if:...! structure and if $.isArray(data)
@@ -173,6 +180,7 @@
 			});
 			var el = $('<'+blockTag+'>', blockAttrs);
 			el = bindEvents(block, el, functions);
+			el = bindData(block, el, data);
 			ZenCode = ZenCode.substr(blocks[0].length);
 		}
 
@@ -319,6 +327,25 @@
 			$(el).bind(split[1],fn);
 			log(bindings[i]);
 			log(split);
+		}
+		return el;
+	}
+
+	function bindData(ZenCode, el, data) {
+		if(ZenCode.search(regDatas) == 0)
+			return el;
+		var datas = ZenCode.match(regDatas);
+		log('doing data');
+		log(datas);
+		if(datas === null)
+			return el;
+		for(var i=0;i<datas.length;i++) {
+			var split = regData.exec(datas[i]);
+			log(split);
+			if(split[3] === undefined)
+				$(el).data(split[1],split[1]);
+			else
+				$(el).data(split[1],split[3]);
 		}
 		return el;
 	}
