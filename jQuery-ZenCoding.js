@@ -1,18 +1,3 @@
-//TODO: What if data is only a single array, string, number, etc.
-//TODO: Allow for setting jQuery events (like click), and storing data
-	/* Allowing events:
-	 *
-	 * E-event=function
-	 */
-//TODO: Allow Zen within {...}?
-	/* Zen within {...} should probably be done as:
-	 *
-	 * span.info>(
-	 *  a{link}+
-	 *  {pure text}+
-	 *  tag
-	 * )
-	 */
 (function($) {
 
 	/*
@@ -41,28 +26,22 @@
 	var regZenTagDfn =
 			/*
 			 * (
-			 *   (
-			 *     ([#\.]?\w+)?         # tag names, ids, and classes
-			 *
-			 *     (\[                  # attributes within '[' and ']'
-			 *       (\w+(="
-			 *       	([^"]|\\")+
-			 *       ")? ?)+            # in form of 'attr' or 'attr="value"'
-			 *     \])?                 # with an optional space
-			 *
-			 *   )+                     # one or more of these make up a tag
-			 * 
-			 *   (\{                    # string contents enclosed in '{' and '}'
-			 *     (                    # with js expressions surrounded by '!'
-			 *       [^\\}]             # find anything that is not a '\' or '}'
-			 *       |                  # or
-			 *       \\\}               # '\}' specifically
-			 *     )+
-			 *   \})?
-			 * )
+			 *   [#\.]?[\w!]+           # tag names, ids, and classes
+			 *   |
+			 *   \[                     # attributes
+			 *     (\w+                 # attribute name
+			 *       (="([^"]|\\")+")?  # attribute value
+			 *      ?)+                 # allow spaces, and look for 1+ attributes
+			 *   \]
+			 *   |
+			 *   -[\w$]+=[\2$]+         # events in form -event=function
+			 * ){0,}                    # 0 or more of the above
+			 * (\{                      # contents
+			 *   ([^\\}]
+			 *   |
+			 *   \\\})+                 # find all before }, but include \}
+			 * \})?
 			 */
-			//((([#\.]?[\w!]+)?(\[(\w+(="([^"]|\\")+")? ?)+\])?)+(\{([^\\}]|\\\})+\})?)/i,	//old but worked...  doesn't have -event=function
-			//([#\.]?[\w!]+|\[(\w+(="([^"]|\\")+")? ?)+\]|-[\w$]+=[\w$]+|\{([^\\}]|\\\})+\})+/i, -- includes events
 			/([#\.]?[\w!]+|\[(\w+(="([^"]|\\")+")? ?)+\]|-[\w$]+=[\w$]+){0,}(\{([^\\}]|\\\})+\})?/i,
 		regTag = /(\w+)/i,	//finds only the first word, must check for now word
 		regId = /#([\w!]+)/i,	//finds id name
@@ -116,21 +95,28 @@
 	 */
 	//TODO: fix to use jquery wrapped elements instead so that events work properly.
 	function createHTMLBlock(ZenCode,data,functions,indexes) {
-		var origZenCode = ZenCode;
+		var origZenCode = ZenCode
+		if(indexes === undefined)
+			indexes = {};
 		// Take care of !for:...! and !if:...! structure and if $.isArray(data)
 		if(ZenCode.charAt(0)=='!' || $.isArray(data)) {
-			var obj = parseEnclosure(ZenCode,'!');
-			obj = obj.substring(obj.indexOf(':')+1,obj.length-1);
-			var forScope = parseVariableScope(ZenCode);
+			if($.isArray(data))
+				var forScope = ZenCode;
+			else {
+				var obj = parseEnclosure(ZenCode,'!');
+				obj = obj.substring(obj.indexOf(':')+1,obj.length-1);
+				var forScope = parseVariableScope(ZenCode);
+			}
 			var el = undefined;
-			if(ZenCode.substring(0,5)=="!for:") {  //!for:...!
-				if(obj.indexOf(':')>0) {
+			if(ZenCode.substring(0,5)=="!for:" || $.isArray(data)) {  //!for:...!
+				log('isArray: '+$.isArray(data));
+				if(!$.isArray(data) && obj.indexOf(':')>0) {
 					var indexName = obj.substring(0,obj.indexOf(':'));
-					if(indexes === undefined)
-						indexes = {};
 					obj = obj.substr(obj.indexOf(':')+1);
 				}
-				$.map(data[obj], function(value, index) {
+				log('isArray: '+$.isArray(data));
+				var arr = $.isArray(data)?data:data[obj];
+				$.map(arr, function(value, index) {
 					if(indexName!==undefined) {
 						indexes[indexName] = index;
 					}
@@ -145,7 +131,10 @@
 						});
 					}
 				});
-				ZenCode = ZenCode.substr(obj.length+6+forScope.length);
+				if(!$.isArray(data))
+					ZenCode = ZenCode.substr(obj.length+6+forScope.length);
+				else
+					ZenCode = '';
 			} else if(ZenCode.substring(0,4)=="!if:") {  //!if:...!
 				var result = parseContents('!'+obj+'!',data,indexes);
 				if(result!='undefined' || result!='false' || result!='')

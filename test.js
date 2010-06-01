@@ -217,4 +217,8 @@ $().ready(function() {
 		}
 	};
 	test(zen,data);
+
+	var zen = ".person{!value!}"
+	var data = ['Mike','Will','Chris'];
+	test(zen,data);
 });
