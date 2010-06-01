@@ -221,4 +221,13 @@ $().ready(function() {
 	var zen = ".person{!value!}"
 	var data = ['Mike','Will','Chris'];
 	test(zen,data);
+
+	var zen = '#databind&test=test1{test1}+#databind2&test2{test2}';
+	var data = {
+		test1: 'hello',
+		test2: 'hello2'
+	};
+	test(zen,data);
+	console.log($('#databind').data('test'));
+	console.log($('#databind2').data('test2'));
 });
