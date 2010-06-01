@@ -1,18 +1,3 @@
-//TODO: What if data is only a single array, string, number, etc.
-//TODO: Allow for setting jQuery events (like click), and storing data
-	/* Allowing events:
-	 *
-	 * E-event=function
-	 */
-//TODO: Allow Zen within {...}?
-	/* Zen within {...} should probably be done as:
-	 *
-	 * span.info>(
-	 *  a{link}+
-	 *  {pure text}+
-	 *  tag
-	 * )
-	 */
 (function($) {
 
 	/*
@@ -29,8 +14,10 @@
 			doLog = bLog;
 		if($.isPlainObject(ZenCode))
 			ZenCode = parseReferences(ZenCode);
-		var functions = data.functions;
+		if(data !== undefined)
+			var functions = data.functions;
 		var el = createHTMLBlock(ZenCode,data,functions);
+		log('returning: '+el);
 		return el;
 	};
 
@@ -39,28 +26,23 @@
 	var regZenTagDfn =
 			/*
 			 * (
-			 *   (
-			 *     ([#\.]?\w+)?         # tag names, ids, and classes
-			 *
-			 *     (\[                  # attributes within '[' and ']'
-			 *       (\w+(="
-			 *       	([^"]|\\")+
-			 *       ")? ?)+            # in form of 'attr' or 'attr="value"'
-			 *     \])?                 # with an optional space
-			 *
-			 *   )+                     # one or more of these make up a tag
-			 * 
-			 *   (\{                    # string contents enclosed in '{' and '}'
-			 *     (                    # with js expressions surrounded by '!'
-			 *       [^\\}]             # find anything that is not a '\' or '}'
-			 *       |                  # or
-			 *       \\\}               # '\}' specifically
-			 *     )+
-			 *   \})?
-			 * )
+			 *   [#\.]?[\w!]+           # tag names, ids, and classes
+			 *   |
+			 *   \[                     # attributes
+			 *     (\w+                 # attribute name
+			 *       (="([^"]|\\")+")?  # attribute value
+			 *      ?)+                 # allow spaces, and look for 1+ attributes
+			 *   \]
+			 *   |
+			 *   -[\w$]+=[\2$]+         # events in form -event=function
+			 * ){0,}                    # 0 or more of the above
+			 * (\{                      # contents
+			 *   ([^\\}]
+			 *   |
+			 *   \\\})+                 # find all before }, but include \}
+			 * \})?
 			 */
-			//((([#\.]?[\w!]+)?(\[(\w+(="([^"]|\\")+")? ?)+\])?)+(\{([^\\}]|\\\})+\})?)/i,	//old but worked...  doesn't have -event=function
-			/([#\.]?[\w!]+|\[(\w+(="([^"]|\\")+")? ?)+\]|-[\w$]+=[\w$]+|\{([^\\}]|\\\})+\})+/i,
+			/([#\.]?[\w!]+|\[(\w+(="([^"]|\\")+")? ?)+\]|-[\w$]+=[\w$]+){0,}(\{([^\\}]|\\\})+\})?/i,
 		regTag = /(\w+)/i,	//finds only the first word, must check for now word
 		regId = /#([\w!]+)/i,	//finds id name
 		regTagNotContent = /((([#\.]?\w+)?(\[(\w+(="([^"]|\\")+")? ?)+\])?)+)/i,
@@ -78,6 +60,10 @@
 		//finds content within '{' and '}' while ignoring '\}'
 		regCBrace = /\{(([^\\}]|\\\})+)\}/i,
 		regExclamation = /!(?!for)(([^!]|\\!)+)!/gi;	//finds js within '!'
+		
+		//finds events in form of -event=function
+		regEvents = /-[\w$]+=[\w$]+/gi;
+		regEvent = /-([\w$]+)=([\w$]+)/i;
 
 	/*
 	 * Parses multiple ZenCode references.  The initial ZenCode must be
@@ -107,38 +93,48 @@
 	 * This is the recursive function to break up, parse, and create every
 	 * element.
 	 */
+	//TODO: fix to use jquery wrapped elements instead so that events work properly.
 	function createHTMLBlock(ZenCode,data,functions,indexes) {
-		var origZenCode = ZenCode;
-		// Take care of nested groups
-		if(ZenCode.charAt(0)=='(') {
-			var paren = parseEnclosure(ZenCode,'(',')');
-			var inner = paren.substring(1,paren.length-1);
-			ZenCode = ZenCode.substr(paren.length);
-			var el = createHTMLBlock(inner,data,functions,indexes);
-		}
-		// Take care of !for:...! and !if:...! structure
-		else if(ZenCode.charAt(0)=='!') {
-			var obj = parseEnclosure(ZenCode,'!');
-			obj = obj.substring(obj.indexOf(':')+1,obj.length-1);
-			var forScope = parseVariableScope(ZenCode);
-			var el = '';
-			if(ZenCode.substring(0,5)=="!for:") {  //!for:...!
-				if(obj.indexOf(':')>0) {
+		var origZenCode = ZenCode
+		if(indexes === undefined)
+			indexes = {};
+		// Take care of !for:...! and !if:...! structure and if $.isArray(data)
+		if(ZenCode.charAt(0)=='!' || $.isArray(data)) {
+			if($.isArray(data))
+				var forScope = ZenCode;
+			else {
+				var obj = parseEnclosure(ZenCode,'!');
+				obj = obj.substring(obj.indexOf(':')+1,obj.length-1);
+				var forScope = parseVariableScope(ZenCode);
+			}
+			var el = undefined;
+			if(ZenCode.substring(0,5)=="!for:" || $.isArray(data)) {  //!for:...!
+				log('isArray: '+$.isArray(data));
+				if(!$.isArray(data) && obj.indexOf(':')>0) {
 					var indexName = obj.substring(0,obj.indexOf(':'));
-					if(indexes === undefined)
-						indexes = {};
 					obj = obj.substr(obj.indexOf(':')+1);
 				}
-				$.map(data[obj], function(value, index) {
+				log('isArray: '+$.isArray(data));
+				var arr = $.isArray(data)?data:data[obj];
+				$.map(arr, function(value, index) {
 					if(indexName!==undefined) {
 						indexes[indexName] = index;
 					}
 					if(!$.isPlainObject(value))
 						value = {value:value};
 					var next = createHTMLBlock(forScope,value,functions,indexes);
-					el = outerHTML($([outerHTML(el), outerHTML(next)].join('')));
+					if(el === undefined)
+						el = next;
+					else {
+						$.each(next, function(index,value) {
+							el.push(value);
+						});
+					}
 				});
-				ZenCode = ZenCode.substr(obj.length+6+forScope.length);
+				if(!$.isArray(data))
+					ZenCode = ZenCode.substr(obj.length+6+forScope.length);
+				else
+					ZenCode = '';
 			} else if(ZenCode.substring(0,4)=="!if:") {  //!if:...!
 				var result = parseContents('!'+obj+'!',data,indexes);
 				if(result!='undefined' || result!='false' || result!='')
@@ -146,10 +142,15 @@
 				ZenCode = ZenCode.substr(obj.length+5+forScope.length);
 			}
 		}
+		// Take care of nested groups
+		else if(ZenCode.charAt(0)=='(') {
+			var paren = parseEnclosure(ZenCode,'(',')');
+			var inner = paren.substring(1,paren.length-1);
+			ZenCode = ZenCode.substr(paren.length);
+			var el = createHTMLBlock(inner,data,functions,indexes);
+		}
 		// Everything left should be a regular block
 		else {
-			/*if(ZenCode.length<=0)
-				return '';*/
 			var blocks = ZenCode.match(regZenTagDfn);
 			if(blocks.length < 1)	//no more blocks to match
 				return;
@@ -159,8 +160,9 @@
 			if(regId.test(block))
 				var blockId = regId.exec(block)[1];
 			var blockAttrs = parseAttributes(block,data);
-			var blockTag = 'div';	//default
-			if(ZenCode.charAt(0)!='#' && ZenCode.charAt(0)!='.')
+			var blockTag = block.charAt(0)=='{'?'span':'div';	//default
+			if(ZenCode.charAt(0)!='#' && ZenCode.charAt(0)!='.' &&
+					ZenCode.charAt(0)!='{')
 				blockTag = regTag.exec(block)[1];	//otherwise
 			if(block.search(regCBrace) != -1)
 				var blockHTML = block.match(regCBrace)[1];
@@ -170,6 +172,7 @@
 				html: blockHTML
 			});
 			var el = $('<'+blockTag+'>', blockAttrs);
+			el = bindEvents(block, el, functions);
 			ZenCode = ZenCode.substr(blocks[0].length);
 		}
 
@@ -178,7 +181,9 @@
 			// Create siblings
 			if(ZenCode.charAt(0) == '+') {
 				var el2 = createHTMLBlock(ZenCode.substr(1),data,functions,indexes);
-				var el = $([outerHTML(el), outerHTML(el2)].join(''));
+				$.each(el2, function(index,value) {
+					el.push(value);
+				});
 			}
 			// Create children
 			else if(ZenCode.charAt(0) == '>') {
@@ -188,7 +193,7 @@
 				els.appendTo(el);
 			}
 		}
-		var ret = outerHTML(el);
+		var ret = el;
 		return ret;
 	}
 
@@ -301,6 +306,23 @@
 		return undefined;
 	}
 
+	function bindEvents(ZenCode, el, functions) {
+		if(ZenCode.search(regEvents) == 0)
+			return el;
+		var bindings = ZenCode.match(regEvents);
+		log(bindings);
+		if(bindings === null)
+			return el;
+		for(var i=0;i<bindings.length;i++) {
+			var split = regEvent.exec(bindings[i]);
+			var fn = functions[split[2]] || split[2];
+			$(el).bind(split[1],fn);
+			log(bindings[i]);
+			log(split);
+		}
+		return el;
+	}
+
 	/*
 	 * jQuery has no way to "unwrap" itself from the containing element,
 	 * so this method "wraps" the element in a <div>, and then gets the
@@ -308,6 +330,8 @@
 	 *
 	 * It is cludgy, and proably a time hog.  More testing is needed to see
 	 * if there is a better/faster way.
+	 *
+	 * !!!!  New method doesn't use this !!!!
 	 */
 	function outerHTML(el) {
 		return $('<div>').append($(el)).html();
