@@ -17,7 +17,6 @@
 		if(data !== undefined)
 			var functions = data.functions;
 		var el = createHTMLBlock(ZenCode,data,functions);
-		log('returning: '+el);
 		return el;
 	};
 
@@ -102,7 +101,6 @@
 	//TODO: fix to use jquery wrapped elements instead so that events work properly.
 	function createHTMLBlock(ZenCode,data,functions,indexes) {
 		var origZenCode = ZenCode;
-		log('parsing: '+ZenCode);
 		if(indexes === undefined)
 			indexes = {};
 		// Take care of !for:...! and !if:...! structure and if $.isArray(data)
@@ -116,12 +114,10 @@
 			}
 			var el = undefined;
 			if(ZenCode.substring(0,5)=="!for:" || $.isArray(data)) {  //!for:...!
-				log('isArray: '+$.isArray(data));
 				if(!$.isArray(data) && obj.indexOf(':')>0) {
 					var indexName = obj.substring(0,obj.indexOf(':'));
 					obj = obj.substr(obj.indexOf(':')+1);
 				}
-				log('isArray: '+$.isArray(data));
 				var arr = $.isArray(data)?data:data[obj];
 				$.map(arr, function(value, index) {
 					if(indexName!==undefined) {
@@ -318,15 +314,12 @@
 		if(ZenCode.search(regEvents) == 0)
 			return el;
 		var bindings = ZenCode.match(regEvents);
-		log(bindings);
 		if(bindings === null)
 			return el;
 		for(var i=0;i<bindings.length;i++) {
 			var split = regEvent.exec(bindings[i]);
 			var fn = functions[split[2]] || split[2];
 			$(el).bind(split[1],fn);
-			log(bindings[i]);
-			log(split);
 		}
 		return el;
 	}
@@ -335,17 +328,14 @@
 		if(ZenCode.search(regDatas) == 0)
 			return el;
 		var datas = ZenCode.match(regDatas);
-		log('doing data');
-		log(datas);
 		if(datas === null)
 			return el;
 		for(var i=0;i<datas.length;i++) {
 			var split = regData.exec(datas[i]);
-			log(split);
 			if(split[3] === undefined)
-				$(el).data(split[1],split[1]);
+				$(el).data(split[1],data[split[1]]);
 			else
-				$(el).data(split[1],split[3]);
+				$(el).data(split[1],data[split[3]]);
 		}
 		return el;
 	}
