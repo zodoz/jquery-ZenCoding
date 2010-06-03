@@ -1,11 +1,53 @@
 <html>
 	<head>
+		<link rel="stylesheet" href="main.css"/>
 		<script type="text/javascript" src="jquery-1.4.2.min.js"></script>
 		<script type="text/javascript" src="jQuery-ZenCoding.js"></script>
-		<script type="text/javascript" src="test.js"></script>
 	</head>
 	<body>
-		<!--textarea id="area" cols='100' rows='30'></textarea-->
-		<div id='area'></div>
+		<div class='header'>jQuery Zen Templating</div><br>
+		<div id='recursive' class='rounded'>
+			<div class='comment'>
+				This is the comment
+				<div class='reply'>
+					Reply one
+					<div class='reply'>
+						Reply two
+					</div>
+				</div>
+			</div>
+		</div>
+		<div id='list' class='rounded'>
+			<ul>
+				<li>one</li>
+				<li>two</li>
+				<li>three</li>
+			</ul>
+		</div>
+		<div id='table' class='rounded'>
+			<table>
+				<tr>
+					<th rowspan='2'></th>
+					<th colspan='2'>Average</th>
+					<th rowspan='2'>Red<br>Eyes</th>
+				</tr>
+				<tr>
+					<th>height</th>
+					<th>weight</th>
+				</tr>
+				<tr>
+					<th>Males</th>
+					<td>1.9</td>
+					<td>0.003</td>
+					<td>40%</td>
+				</tr>
+				<tr>
+					<th>Females</th>
+					<td>1.7</td>
+					<td>.002</td>
+					<td>43%</td>
+				</tr>
+			</table>
+		</div>
 	</body>
 </html>

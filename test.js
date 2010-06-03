@@ -55,6 +55,7 @@ $().ready(function() {
 	test('tag>tag2+tag3','<tag><tag2></tag2><tag3></tag3></tag>');
 	test('tag+tag2','<tag></tag><tag2></tag2>');
 	//test('head>link','<head><link></head>');  //test passes in chrome, but the tester fails becuase $('<head>') in chrome results in nothing for some reason...?
+	console.log('test1');
 	test('#page>.content>p+.test',
 		'<div id="page"><div class="content"><p></p><div class="test">'+
 		'</div></div></div>');
@@ -139,6 +140,7 @@ $().ready(function() {
 		contacts: zenContacts
 	};
 	var answer = '<div id="msg">Test of referencing:</div>'+answer;
+	console.log('first reference test');
 	test(ZenContactList,data,answer);
 
 	var ZenContactList2 = {
@@ -229,5 +231,34 @@ $().ready(function() {
 	};
 	test(zen,data);
 	console.log($('#databind').data('test'));
-	console.log($('#databind2').data('test2'));
+	console.log($('#databind2').data('test2'));//*/
+
+	var zen = {
+		main: '@recurse',
+		recurse: '!for:replies!.reply{!msg!}>@recurse'
+	};
+	var data = {
+		replies: [
+			{
+				msg: 'msg1',
+				replies: [
+					{
+						msg: 'hello msg1',
+					}, {
+						msg: 'hi again msg1'
+					}
+				]
+			}, {
+				msg: 'msg2',
+				replies: [
+					{
+						msg: 'hello msg2',
+					}, {
+						msg: 'hi again msg2'
+					}
+				]
+			}
+		]
+	};
+	test(zen,data);
 });
