@@ -32,7 +32,7 @@ Definitions
 Syntax
 ======
 
-**E** - *E* is a Tag which will be created into an Element<br>
+**E** - ***E*** is a Tag which will be created into an Element<br>
 **E#id** - *id* is the string ID of *E*.  If *E* is not defined, *E* is assumed to be "div".<br>
 **E.class** - *class* is the string class name of a class of *E*.  If *E* is not defined, *E* is assumed to be "div".<br>
 **E>E2** - *E2* is the child of *E*<br>
@@ -42,7 +42,7 @@ Syntax
 **E{value}** - *value* is assigned as the contents of *E*.  If *E* is not devinded, *E* is assumed to be "span".<br>
 **(E...)** - groups one or more Tags<br>
 **E-event** - *event* is the string representation of an event of *E* which is associated with function *event* in data<br>
-**E-event=fn** *event* is the string representation of an event of *E* which is associated with function *fn* in data<br>
+**E-event=fn** - *event* is the string representation of an event of *E* which is associated with function *fn* in data<br>
 **E&data** - *data* is the string of an object within data to be mapped to *E* as *data* via $.data(*data*,*data*)<br>
 **E&data=reference** - *reference* is the string of an object within data to be mapped to *E* as *data* via $.data(*data*,*reference*)<br>
 **!js!** - The value returned by executing *js* will replace *!js!* in the ZenCode<br>
