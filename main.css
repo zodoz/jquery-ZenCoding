@@ -1,0 +1,29 @@
+body {
+	background: #000;
+}
+
+.header {
+	-moz-border-radius: 10px;
+	background: -moz-linear-gradient(center top, #3F3F3F, #212121) repeat scroll 0 0 transparent;
+	color: #ADADAD;
+	border: 3px solid #6B6B6B;
+	padding: 15px 30px;
+	font: 2em Cambria, Georgia, sans-serif;
+	text-align: center;
+}
+
+.rounded {
+	-moz-border-radius: 10px;
+	background: -moz-linear-gradient(center top, #3F3F3F, #212121) repeat scroll 0 0 transparent;
+	color: #BDBDBD;
+	border: 3px solid #6B6B6B;
+	padding: 5px 10px;
+	margin: 5px 3px;
+}
+
+.reply {
+	padding-left: 6px;
+	margin-left: 4px;
+	border-left: 2px solid #B1B73A;
+	color: #ADADAD;
+}
