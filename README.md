@@ -41,8 +41,8 @@ Syntax
 **E[attr="value"]** - ***attr*** is an attribute with value ***value*** of ***E***<br>
 **E{value}** - ***value*** is assigned as the contents of ***E***.  If ***E*** is not definded, ***E*** is assumed to be "span".<br>
 **(E...)** - group one or more Tags<br>
-**E-event** - ***event*** is the string representation of an event of ***E*** which is associated with function ***event*** in data<br>
-**E-event=fn** - ***event*** is the string representation of an event of ***E*** which is associated with function ***fn*** in data<br>
+**E~event** - ***event*** is the string representation of an event of ***E*** which is associated with function ***event*** in data<br>
+**E~event=fn** - ***event*** is the string representation of an event of ***E*** which is associated with function ***fn*** in data<br>
 **E&data** - ***data*** is the string of an object within data to be mapped to ***E*** as ***data*** via $.data(***data***,***data***)<br>
 **E&data=reference** - ***reference*** is the string of an object within data to be mapped to ***E*** as ***data*** via $.data(***data***,***reference***)<br>
 **@reference** - When using a ZenObject M, ***reference*** should be a string representation of a ZenCode N within M which will replace the ***@reference*** in the running ZenCode.<br>
