@@ -25,7 +25,7 @@
 	var regZenTagDfn =
 			/*
 			 * (
-			 *   [#\.]?[\w!]+           # tag names, ids, and classes
+			 *   [#\.]?[\w!-]+           # tag names, ids, and classes
 			 *   |
 			 *   \[                     # attributes
 			 *     (\w+                 # attribute name
@@ -33,7 +33,7 @@
 			 *      ?)+                 # allow spaces, and look for 1+ attributes
 			 *   \]
 			 *   |
-			 *   -[\w$]+=[\w$]+         # events in form -event=function
+			 *   \~[\w$]+=[\w$]+         # events in form ~event=function
 			 *   |
 			 *   &[\w$\+(=[\w$]+)?      # data in form &data[=variable]
 			 * ){0,}                    # 0 or more of the above
@@ -43,12 +43,12 @@
 			 *   \\\})+                 # find all before }, but include \}
 			 * \})?
 			 */
-			/([#\.]?[\w!]+|\[(\w+(="([^"]|\\")+")? ?)+\]|-[\w$]+=[\w$]+|&[\w$]+(=[\w$]+)?){0,}(\{([^\\}]|\\\})+\})?/i,
+			/([#\.]?[\w!-]+|\[(\w+(="([^"]|\\")+")? ?)+\]|\~[\w$]+=[\w$]+|&[\w$]+(=[\w$]+)?){0,}(\{([^\\}]|\\\})+\})?/i,
 		regTag = /(\w+)/i,	//finds only the first word, must check for now word
 		regId = /#([\w!]+)/i,	//finds id name
-		regTagNotContent = /((([#\.]?\w+)?(\[(\w+(="([^"]|\\")+")? ?)+\])?)+)/i,
-		regClasses = /(\.\w+)/gi,	//finds all classes
-		regClass = /\.(\w+)/i,	//finds the class name of each class
+		regTagNotContent = /((([#\.]?[\w!-]+)?(\[(\w+(="([^"]|\\")+")? ?)+\])?)+)/i,
+		regClasses = /(\.[\w-]+)/gi,	//finds all classes
+		regClass = /\.([\w-]+)/i,	//finds the class name of each class
 
 		//finds reference objects
 		regReference = /(@[\w$_][\w$_\d]+)/gi,
@@ -63,8 +63,8 @@
 		regExclamation = /!(?!for)(([^!]|\\!)+)!/gi,	//finds js within '!'
 		
 		//finds events in form of -event=function
-		regEvents = /-[\w$]+=[\w$]+/gi,
-		regEvent = /-([\w$]+)=([\w$]+)/i,
+		regEvents = /\~[\w$]+=[\w$]+/gi,
+		regEvent = /\~([\w$]+)=([\w$]+)/i,
 		
 		//find data in form &data or &dataname=data
 		regDatas = /&[\w$]+(=[\w$]+)?/gi,
