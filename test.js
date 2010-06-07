@@ -19,7 +19,6 @@ $().ready(function() {
 			area.append(
 				$('<div>test: "'+ZenMain+'" -> '+pass+'</div>'));
 		} else {
-			console.log('debug = on');
 			area.append(
 				$("<div>").append(zc));
 		}
@@ -55,7 +54,6 @@ $().ready(function() {
 	test('tag>tag2+tag3','<tag><tag2></tag2><tag3></tag3></tag>');
 	test('tag+tag2','<tag></tag><tag2></tag2>');
 	//test('head>link','<head><link></head>');  //test passes in chrome, but the tester fails becuase $('<head>') in chrome results in nothing for some reason...?
-	console.log('test1');
 	test('#page>.content>p+.test',
 		'<div id="page"><div class="content"><p></p><div class="test">'+
 		'</div></div></div>');
@@ -140,7 +138,6 @@ $().ready(function() {
 		contacts: zenContacts
 	};
 	var answer = '<div id="msg">Test of referencing:</div>'+answer;
-	console.log('first reference test');
 	test(ZenContactList,data,answer);
 
 	var ZenContactList2 = {
@@ -209,6 +206,8 @@ $().ready(function() {
 	test(zen,data);
 
 	var testfn = function(evt) {
+		if($.browser == 'msie')
+			return;
 		console.log('running test function');
 		console.log(evt);
 	}
@@ -230,8 +229,6 @@ $().ready(function() {
 		test2: 'hello2'
 	};
 	test(zen,data);
-	console.log($('#databind').data('test'));
-	console.log($('#databind2').data('test2'));//*/
 
 	var zen = {
 		main: '@recurse',
@@ -243,7 +240,7 @@ $().ready(function() {
 				msg: 'msg1',
 				replies: [
 					{
-						msg: 'hello msg1',
+						msg: 'hello msg1'
 					}, {
 						msg: 'hi again msg1'
 					}
@@ -252,7 +249,7 @@ $().ready(function() {
 				msg: 'msg2',
 				replies: [
 					{
-						msg: 'hello msg2',
+						msg: 'hello msg2'
 					}, {
 						msg: 'hi again msg2'
 					}
