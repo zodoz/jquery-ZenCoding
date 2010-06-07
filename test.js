@@ -261,4 +261,10 @@ $().ready(function() {
 		]
 	};
 	test(zen,data);
+
+	var zen = 'ul>!for:i:msg!li{!i+1! test !value!}';
+	var data = {
+		msg: ['one', 'two']
+	}
+	test(zen,data);
 });

@@ -12,11 +12,8 @@
  	$.zc = function(ZenCode,data,bLog) {
 		if(bLog!==undefined)
 			doLog = bLog;
-		/*if($.isPlainObject(ZenCode))
-			ZenCode = parseReferences(ZenCode);*/
 		if(data !== undefined)
 			var functions = data.functions;
-		console.log(ZenCode);
 		var el = createHTMLBlock(ZenCode,data,functions);
 		return el;
 	};
@@ -29,12 +26,12 @@
 			 *   [#\.@]?[\w!]+          # tag names, ids, classes, and references
 			 *   |
 			 *   \[                     # attributes
-			 *     (\w+                 # attribute name
+			 *     ([!\w-]+             # attribute name
 			 *       (="([^"]|\\")+")?  # attribute value
-			 *      ?)+                 # allow spaces, and look for 1+ attributes
+			 *      {0,})+              # allow spaces, and look for 1+ attributes
 			 *   \]
 			 *   |
-			 *   -[\w$]+=[\w$]+         # events in form -event=function
+			 *   \~[\w$]+=[\w$]+         # events in form -event=function
 			 *   |
 			 *   &[\w$\+(=[\w$]+)?      # data in form &data[=variable]
 			 * ){0,}                    # 0 or more of the above
@@ -44,28 +41,28 @@
 			 *   \\\})+                 # find all before }, but include \}
 			 * \})?
 			 */
-			/([#\.\@]?[\w!]+|\[(\w+(="([^"]|\\")+")? ?)+\]|-[\w$]+=[\w$]+|&[\w$]+(=[\w$]+)?){0,}(\{([^\\}]|\\\})+\})?/i,
+			/([#\.\@]?[\w!-]+|\[([\w!?=:"']+(="([^"]|\\")+")? {0,})+\]|\~[\w$]+=[\w$]+|&[\w$]+(=[\w$]+)?){0,}(\{([^\\}]|\\\})+\})?/i,
 		regTag = /(\w+)/i,	//finds only the first word, must check for now word
 		regId = /#([\w!]+)/i,	//finds id name
-		regTagNotContent = /((([#\.]?\w+)?(\[(\w+(="([^"]|\\")+")? ?)+\])?)+)/i,
-		regClasses = /(\.\w+)/gi,	//finds all classes
-		regClass = /\.(\w+)/i,	//finds the class name of each class
+		regTagNotContent = /((([#\.]?[\w-]+)?(\[([\w!]+(="([^"]|\\")+")? {0,})+\])?)+)/i,
+		regClasses = /(\.[\w-]+)/gi,	//finds all classes
+		regClass = /\.([\w-]+)/i,	//finds the class name of each class
 
 		//finds reference objects
 		regReference = /(@[\w$_][\w$_\d]+)/i,
 
 		//finds attributes within '[' and ']' of type name or name="value"
-		regAttrDfn = /(\[(\w+(="([^"]|\\")+")? ?)+\])/i,
-		regAttrs = /(\w+(="([^"]|\\")+")?)/gi,	//finds each attribute
-		regAttr = /(\w+)(="(([^"]|\\")+)")?/i,	//finds individual attribute and value
+		regAttrDfn = /(\[([\w!]+(="([^"]|\\")+")? {0,})+\])/i,
+		regAttrs = /([\w!]+(="([^"]|\\")+")?)/gi,	//finds each attribute
+		regAttr = /([\w!]+)(="(([^"]|\\")+)")?/i,	//finds individual attribute and value
 
 		//finds content within '{' and '}' while ignoring '\}'
 		regCBrace = /\{(([^\}]|\\\})+)\}/i,
 		regExclamation = /!(?!for)(([^!]|\\!)+)!/gi,	//finds js within '!'
 		
 		//finds events in form of -event=function
-		regEvents = /-[\w$]+(=[\w$]+)?/gi,
-		regEvent = /-([\w$]+)=([\w$]+)/i,
+		regEvents = /\~[\w$]+(=[\w$]+)?/gi,
+		regEvent = /\~([\w$]+)=([\w$]+)/i,
 		
 		//find data in form &data or &dataname=data
 		regDatas = /&[\w$]+(=[\w$]+)?/gi,
@@ -154,13 +151,13 @@
 					ZenCode = ZenCode.substr(obj.length+6+forScope.length);
 				else
 					ZenCode = '';
-				ZenObject.main = ZenCode;
 			} else if(ZenCode.substring(0,4)=="!if:") {  //!if:...!
 				var result = parseContents('!'+obj+'!',data,indexes);
 				if(result!='undefined' || result!='false' || result!='')
 					el = createHTMLBlock(zo,data,functions,indexes);
 				ZenCode = ZenCode.substr(obj.length+5+forScope.length);
 			}
+			ZenObject.main = ZenCode;
 		}
 		// Take care of nested groups
 		else if(ZenCode.charAt(0)=='(') {
@@ -174,8 +171,6 @@
 		// Everything left should be a regular block
 		else {
 			var blocks = ZenCode.match(regZenTagDfn);
-			/*if(blocks.length < 1)	//no more blocks to match
-				return;*/
 			var block = blocks[0];	//actual block to create
 			if(block.length == 0) {
 				return '';
@@ -212,6 +207,28 @@
 
 		// Recurse based on '+' or '>'
 		if(ZenCode.length > 0) {
+			// Create children
+			if(ZenCode.charAt(0) == '>') {
+				if(ZenCode.charAt(1) == '(') {
+					var zc = parseEnclosure(ZenCode.substr(1),'(',')');
+					ZenCode = ZenCode.substr(zc.length+1);
+				} else if(ZenCode.charAt(1) == '!') {
+					var obj = parseEnclosure(ZenCode.substr(1),'!');
+					var forScope = parseVariableScope(ZenCode.substr(1));
+					var zc = obj+forScope;
+					ZenCode = ZenCode.substr(zc.length+1);
+				} else {
+					var len = Math.max(ZenCode.indexOf('+'),ZenCode.length);
+					var zc = ZenCode.substring(1, len);
+					ZenCode = ZenCode.substr(len);
+				}
+				var zo = ZenObject;
+				zo.main = zc;
+				var els = $(
+					createHTMLBlock(zo,data,functions,indexes)
+				);
+				els.appendTo(el);
+			}
 			// Create siblings
 			if(ZenCode.charAt(0) == '+') {
 				var zo = ZenObject;
@@ -220,15 +237,6 @@
 				$.each(el2, function(index,value) {
 					el.push(value);
 				});
-			}
-			// Create children
-			else if(ZenCode.charAt(0) == '>') {
-				var zo = ZenObject;
-				zo.main = ZenCode.substr(1);
-				var els = $(
-					createHTMLBlock(zo,data,functions,indexes)
-				);
-				els.appendTo(el);
 			}
 		}
 		var ret = el;
@@ -332,6 +340,9 @@
 			return undefined;
 		var forCode = parseEnclosure(ZenCode,'!');
 		ZenCode = ZenCode.substr(forCode.length);
+		if(ZenCode.charAt(0) == '(') {
+			return parseEnclosure(ZenCode,'(',')');
+		}
 		var tag = ZenCode.match(regZenTagDfn)[0];
 		ZenCode = ZenCode.substr(tag.length);
 		if(ZenCode.length==0 || ZenCode.charAt(0)=='+') {
