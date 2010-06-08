@@ -230,6 +230,7 @@ $().ready(function() {
 	};
 	test(zen,data);
 
+	console.log('doing recursive');
 	var zen = {
 		main: '@recurse',
 		recurse: '!for:replies!.reply{!msg!}>@recurse'
@@ -258,8 +259,9 @@ $().ready(function() {
 		]
 	};
 	test(zen,data);
+	console.log('done recursive');
 
-	var zen = 'ul>!for:i:msg!li{!i+1! test !value!}';
+	var zen = 'ul>!for:i:msg!li{!i+1! Wow\\! !value!}';
 	var data = {
 		msg: ['one', 'two']
 	}

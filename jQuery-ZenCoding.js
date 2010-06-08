@@ -36,12 +36,12 @@
 			 *   &[\w$\+(=[\w$]+)?      # data in form &data[=variable]
 			 * ){0,}                    # 0 or more of the above
 			 * (\{                      # contents
-			 *   ([^\\}]
+			 *   ([^\}]
 			 *   |
 			 *   \\\})+                 # find all before }, but include \}
 			 * \})?
 			 */
-			/([#\.\@]?[\w!-]+|\[([\w!?=:"']+(="([^"]|\\")+")? {0,})+\]|\~[\w$]+=[\w$]+|&[\w$]+(=[\w$]+)?){0,}(\{([^\\}]|\\\})+\})?/i,
+			/([#\.\@]?[\w!-]+|\[([\w!?=:"']+(="([^"]|\\")+")? {0,})+\]|\~[\w$]+=[\w$]+|&[\w$]+(=[\w$]+)?){0,}(\{([^\}]|\\\})+\})?/i,
 		regTag = /(\w+)/i,	//finds only the first word, must check for now word
 		regId = /#([\w!]+)/i,	//finds id name
 		regTagNotContent = /((([#\.]?[\w-]+)?(\[([\w!]+(="([^"]|\\")+")? {0,})+\])?)+)/i,
@@ -58,7 +58,9 @@
 
 		//finds content within '{' and '}' while ignoring '\}'
 		regCBrace = /\{(([^\}]|\\\})+)\}/i,
-		regExclamation = /!(?!for)(([^!]|\\!)+)!/gi,	//finds js within '!'
+		//regExclamations = /([^\\]|^)!(?!for)(([^!]|\\!)+)!/ig,	//finds js within '!'
+		//regExclamation = /!(?!for)(([^!]|\\!)+)!/i,	//finds js within '!'
+		regExclamation = /(?:([^\\]|^))!(?!for|if)([^!]|\\!)+!/gim,
 		
 		//finds events in form of -event=function
 		regEvents = /\~[\w$]+(=[\w$]+)?/gi,
@@ -314,17 +316,28 @@
 		var html = ZenBlock;
 		if(data===undefined)
 			return html;
-		html = html.replace(regExclamation, function(str) {
-			str = str.substring(1,str.length-1);
+		//var blocks = ZenBlock.match(regExclamations);
+		html = html.replace(regExclamation, function(str, str2) {
+			var begChar = '';
+			if(str.charAt(0) == '!')
+				str = str.substring(1,str.length-1);
+			else {
+				begChar = str.charAt(0);
+				str = str.substring(2,str.length-1);
+			}
 			var fn = new Function('data','indexes',
 				'var r=undefined;'+
 				'with(data){try{r='+str+';}catch(e){}}'+
 				'with(indexes){try{if(r===undefined)r='+str+';}catch(e){}}'+
 				'return r;');
 			var val = unescape(fn(data,indexes));
-			return val;
+			//var val = fn(data,indexes);
+			return begChar+val;
 		});
-		return html;
+		html = html.replace(/\\./g,function (str) {
+			return str.charAt(1);
+		});
+		return unescape(html);
 	}
 
 	/*
