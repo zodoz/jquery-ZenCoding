@@ -266,4 +266,15 @@ $().ready(function() {
 		msg: ['one', 'two']
 	}
 	test(zen,data);
+
+	console.log('doing fruit');
+	var zen = '!for:fruit!.!fruit!!fruit=="apple"?".highlight":""!';
+	var data = {
+		fruit: [
+			{fruit:'apple'},
+			{fruit:'orange'}
+		]
+	};
+	test(zen,data);
+	console.log('done fruit');
 });
