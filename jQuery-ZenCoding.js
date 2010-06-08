@@ -23,7 +23,7 @@
 	var regZenTagDfn =
 			/*
 			 * (
-			 *   [#\.@]?[\w!]+          # tag names, ids, classes, and references
+			 *   [#\.@]?[\w!-]+          # tag names, ids, classes, and references
 			 *   |
 			 *   \[                     # attributes
 			 *     ([!\w-]+             # attribute name
@@ -34,14 +34,21 @@
 			 *   \~[\w$]+=[\w$]+         # events in form -event=function
 			 *   |
 			 *   &[\w$\+(=[\w$]+)?      # data in form &data[=variable]
+			 *   |
+			 *   (?:[^\\]|^)            # find either \ or beginning of line
+			 *   !
 			 * ){0,}                    # 0 or more of the above
 			 * (\{                      # contents
-			 *   ([^\}]
-			 *   |
-			 *   \\\})+                 # find all before }, but include \}
+			 *   (
+			 *     [^\}]
+			 *     |
+			 *     \\\}                 # find all before }, but include \}
+			 *   )+
 			 * \})?
 			 */
-			/([#\.\@]?[\w!-]+|\[([\w!?=:"']+(="([^"]|\\")+")? {0,})+\]|\~[\w$]+=[\w$]+|&[\w$]+(=[\w$]+)?){0,}(\{([^\}]|\\\})+\})?/i,
+			///([#\.\@]?[\w!-]+|\[([\w!?=:"']+(="([^"]|\\")+")? {0,})+\]|\~[\w$]+=[\w$]+|&[\w$]+(=[\w$]+)?){0,}(\{([^\}]|\\\})+\})?/i,
+			///([#\.\@]?[\w]+|\[([\w!?=:"']+(="([^"]|\\")+")? {0,})+\]|\~[\w$]+=[\w$]+|&[\w$]+(=[\w$]+)?|(?:[^\\\{]|^)!([^!]|\\!)+!){0,}(\{([^\}]|\\\})+\})?/im,
+			/([#\.\@]?[\w-]+|\[([\w!?=:"']+(="([^"]|\\")+")? {0,})+\]|\~[\w$]+=[\w$]+|&[\w$]+(=[\w$]+)?|[#\.\@]?!([^!]|\\!)+!){0,}(\{([^\}]|\\\})+\})?/i,
 		regTag = /(\w+)/i,	//finds only the first word, must check for now word
 		regId = /#([\w!]+)/i,	//finds id name
 		regTagNotContent = /((([#\.]?[\w-]+)?(\[([\w!]+(="([^"]|\\")+")? {0,})+\])?)+)/i,
@@ -60,7 +67,8 @@
 		regCBrace = /\{(([^\}]|\\\})+)\}/i,
 		//regExclamations = /([^\\]|^)!(?!for)(([^!]|\\!)+)!/ig,	//finds js within '!'
 		//regExclamation = /!(?!for)(([^!]|\\!)+)!/i,	//finds js within '!'
-		regExclamation = /(?:([^\\]|^))!(?!for|if)([^!]|\\!)+!/gim,
+		//regExclamation = /(?:([^\\]|^))!(?!for|if)([^!]|\\!)+!/gim,
+		regExclamation = /(?:([^\\]|^))!([^!]|\\!)+!/gim,
 		
 		//finds events in form of -event=function
 		regEvents = /\~[\w$]+(=[\w$]+)?/gi,
@@ -311,29 +319,32 @@
 	function parseContents(ZenBlock, data, indexes) {
 		if(indexes===undefined)
 			indexes = {};
-		/*if(ZenBlock.search(regCBrace) == -1)
-			return ZenBlock;*/
 		var html = ZenBlock;
 		if(data===undefined)
 			return html;
-		//var blocks = ZenBlock.match(regExclamations);
-		html = html.replace(regExclamation, function(str, str2) {
-			var begChar = '';
-			if(str.charAt(0) == '!')
-				str = str.substring(1,str.length-1);
-			else {
-				begChar = str.charAt(0);
-				str = str.substring(2,str.length-1);
-			}
-			var fn = new Function('data','indexes',
-				'var r=undefined;'+
-				'with(data){try{r='+str+';}catch(e){}}'+
-				'with(indexes){try{if(r===undefined)r='+str+';}catch(e){}}'+
-				'return r;');
-			var val = unescape(fn(data,indexes));
-			//var val = fn(data,indexes);
-			return begChar+val;
-		});
+		//The while takes care of the issue .!fruit!!fruit=="bla"?:".sd":""!
+		//aka contigous !...!
+		while(regExclamation.test(html)) {
+			html = html.replace(regExclamation, function(str, str2) {
+				var begChar = '';
+				if(str.indexOf("!for:") > 0 || str.indexOf("!if:") > 0)
+					return str;
+				if(str.charAt(0) == '!')
+					str = str.substring(1,str.length-1);
+				else {
+					begChar = str.charAt(0);
+					str = str.substring(2,str.length-1);
+				}
+				var fn = new Function('data','indexes',
+					'var r=undefined;'+
+					'with(data){try{r='+str+';}catch(e){}}'+
+					'with(indexes){try{if(r===undefined)r='+str+';}catch(e){}}'+
+					'return r;');
+				var val = unescape(fn(data,indexes));
+				//var val = fn(data,indexes);
+				return begChar+val;
+			});
+		}
 		html = html.replace(/\\./g,function (str) {
 			return str.charAt(1);
 		});
