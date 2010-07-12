@@ -31,7 +31,7 @@
 	 * ZenObject: Collection of ZenCode and ZenObjects.  ZenObject.main must
 	 * be defined
 	 */
- 	$.zc = function(ZenCode,data) {
+ 	$.zc = $.zen = function(ZenCode,data) {
 		if(data !== undefined)
 			var functions = data.functions;
 		var el = createHTMLBlock(ZenCode,data,functions);
