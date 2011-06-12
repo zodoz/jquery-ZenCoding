@@ -1,4 +1,3 @@
-//test
 /**
  * Copyright (c) 2010 Mike Kent
  *
