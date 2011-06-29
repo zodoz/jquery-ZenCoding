@@ -25,17 +25,46 @@
 	/*
 	 * Calling conventions:
 	 *
-	 * $.zc( ZenCode | ZenObject [, data] )
+	 * $.zc( ZenCode | ZenObject [, data] [, compile] )
 	 *
 	 * ZenCode: string to be parsed into HTML
 	 * ZenObject: Collection of ZenCode and ZenObjects.  ZenObject.main must
 	 * be defined
+	 * compile: forces return of function rather than element only when true
 	 */
- 	$.zc = $.zen = function(ZenCode,data) {
-		if(data !== undefined)
-			var functions = data.functions;
-		var el = createHTMLBlock(ZenCode,data,functions);
-		return el;
+ 	$.zc = $.zen = function(ZenCode, data, compile) {
+		var functions = undefined;
+		// if data is an argument
+		if(data !== "undefined" && data !== null) {
+			if(typeof data === "object") { // is data actually data
+				functions = data.functions;
+			} else if(typeof data === "boolean") { // is data actually compile
+				compile = data;
+				data = undefined;
+			}
+		}
+		// return a usable function
+		if(compile) {
+			function zenCompiled(ZenCode, defaultData, defaultFunctions) {
+				this.passedZenCode = ZenCode;
+				this.defaultData = defaultData;
+				this.defaultFunctions = defaultFunctions;
+
+				return function(data) {
+					if(data !== "undefined" && data !== null &&
+							typeof data === "object") {
+						$.extend(defaultData,data);
+						if(data.functions !== "undefined") {
+							$.extend(defaultFunctions,data.functions);
+						}
+					}
+					return createHTMLBlock(this.passedZenCode, this.defaultData,
+						this.defaultFunctions);
+				};
+			}
+		}
+		// otherwise
+		return createHTMLBlock(ZenCode,data,functions);
 	};
 
 	var regZenTagDfn =
