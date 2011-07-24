@@ -41,14 +41,15 @@
 			} else if(typeof data === "boolean") { // is data actually compile
 				compile = data;
 				data = undefined;
+				functions = undefined;
 			}
 		}
 		// return a usable function
 		if(compile) {
-			function zenCompiled(ZenCode, defaultData, defaultFunctions) {
-				this.passedZenCode = ZenCode;
-				this.defaultData = defaultData;
-				this.defaultFunctions = defaultFunctions;
+			return (function zenCompiled(ZenCode, defaultData, defaultFunctions) {
+				var passedZenCode = ZenCode;
+				var defaultData = defaultData || {};
+				var defaultFunctions = defaultFunctions || {};
 
 				return function(data) {
 					if(data !== "undefined" && data !== null &&
@@ -58,10 +59,10 @@
 							$.extend(defaultFunctions,data.functions);
 						}
 					}
-					return createHTMLBlock(this.passedZenCode, this.defaultData,
-						this.defaultFunctions);
+					return createHTMLBlock(passedZenCode, defaultData,
+						defaultFunctions);
 				};
-			}
+			})(ZenCode, data, functions);
 		}
 		// otherwise
 		return createHTMLBlock(ZenCode,data,functions);
@@ -98,7 +99,7 @@
        */
 			/([#\.\@]?[\w-]+|\[([\w!?=:"']+(="([^"]|\\")+")? {0,})+\]|\~[\w$]+=[\w$]+|&[\w$]+(=[\w$]+)?|[#\.\@]?!([^!]|\\!)+!){0,}(\{([^\}]|\\\})+\})?/i,
 		regTag = /(\w+)/i,	//finds only the first word, must check for now word
-		regId = /#([\w!]+)/i,	//finds id name
+		regId = /#([\w!-]+)/i,	//finds id name
 		regTagNotContent = /((([#\.]?[\w-]+)?(\[([\w!]+(="([^"]|\\")+")? {0,})+\])?)+)/i,
 		regClasses = /(\.[\w-]+)/gi,	//finds all classes
 		regClass = /\.([\w-]+)/i,	//finds the class name of each class
@@ -131,10 +132,11 @@
 	 * element.
 	 */
 	function createHTMLBlock(ZenObject,data,functions,indexes) {
-		if($.isPlainObject(ZenObject))
-			var ZenCode = ZenObject.main;
-		else {
-			var ZenCode = ZenObject;
+		// organize ZenObject and ensure no \n are in the ZenCode and trim it
+		if($.isPlainObject(ZenObject)) {
+			var ZenCode = ZenObject.main.replace(/\n|\\n/g,"").trim();
+		} else {
+			var ZenCode = ZenObject.replace(/\n|\\n/g,"").trim();
 			ZenObject = {
 				main: ZenCode
 			};
@@ -252,7 +254,7 @@
 				var blockId = regId.exec(block)[1];
 			// get block attributes
 			var blockAttrs = parseAttributes(block,data);
-			// default block tag is div unless block is only {...}, thenspan
+			// default block tag is div unless block is only {...}, then span
 			var blockTag = block.charAt(0)=='{'?'span':'div';
 			// get block tag if it is explicitly defined
 			if(ZenCode.charAt(0)!='#' && ZenCode.charAt(0)!='.' &&
@@ -268,8 +270,8 @@
 				html: blockHTML
 			});
 			// create Element based on block
-			var el = $('<'+blockTag+'>', blockAttrs);
-			el.attr(blockAttrs);  //fixes IE error (issue 2)
+			var el = $('<'+blockTag+'/>', blockAttrs);
+			//el.attr(blockAttrs);  //fixes IE error (issue 2)
 			// bind created element with any events and data
 			el = bindEvents(block, el, functions);
 			el = bindData(block, el, data);
