@@ -254,8 +254,8 @@
 				var blockId = regId.exec(block)[1];
 			// get block attributes
 			var blockAttrs = parseAttributes(block,data);
-			// default block tag is div unless block is only {...}, then span
-			var blockTag = block.charAt(0)=='{'?'span':'div';
+			// default block tag is div
+			var blockTag = 'div';
 			// get block tag if it is explicitly defined
 			if(ZenCode.charAt(0)!='#' && ZenCode.charAt(0)!='.' &&
 					ZenCode.charAt(0)!='{')
@@ -263,6 +263,8 @@
 			// get block HTML contents
 			if(block.search(regCBrace) != -1)
 				var blockHTML = block.match(regCBrace)[1];
+      if(block.charAt(0) == '{')
+        return blockHTML;
 			// create jQuery attribute object with all data
 			blockAttrs = $.extend(blockAttrs, {
 				id: blockId,
