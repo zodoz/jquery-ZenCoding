@@ -44,7 +44,7 @@
        *   [#\.@]?[\w!-]+         # tag names, ids, classes, and references
        *   |
        *   \[                     # attributes
-       *     ([\w!?=:"']+         # attribute name
+       *     ([(\w|\-)!?=:"']+    # attribute name
        *       (="([^"]|\\")+")?  # attribute value
        *      {0,})+              # allow spaces, and look for 1+ attributes
        *   \]
@@ -67,9 +67,9 @@
        *   )+
        * \})?
        */
-			/([#\.\@]?[\w-]+|\[([\w!?=:"']+(="([^"]|\\")+")? {0,})+\]|\~[\w$]+=[\w$]+|&[\w$]+(=[\w$]+)?|[#\.\@]?!([^!]|\\!)+!){0,}(\{([^\}]|\\\})+\})?/i,
+            /([#\.\@]?[\w-]+|\[([(\w|\-)!?=:"']+(="([^"]|\\")+")? {0,})+\]|\~[\w$]+=[\w$]+|&[\w$]+(=[\w$]+)?|[#\.\@]?!([^!]|\\!)+!){0,}(\{([^\}]|\\\})+\})?/i,
 		regTag = /(\w+)/i,	//finds only the first word, must check for now word
-		regId = /#([\w!]+)/i,	//finds id name
+		regId = /#((\-|[\w])+)/i,	//finds id name
 		regTagNotContent = /((([#\.]?[\w-]+)?(\[([\w!]+(="([^"]|\\")+")? {0,})+\])?)+)/i,
 		regClasses = /(\.[\w-]+)/gi,	//finds all classes
 		regClass = /\.([\w-]+)/i,	//finds the class name of each class
@@ -78,9 +78,9 @@
 		regReference = /(@[\w$_][\w$_\d]+)/i,
 
 		//finds attributes within '[' and ']' of type name or name="value"
-		regAttrDfn = /(\[([\w!]+(="([^"]|\\")+")? {0,})+\])/i,
-		regAttrs = /([\w!]+(="([^"]|\\")+")?)/gi,	//finds each attribute
-		regAttr = /([\w!]+)(="(([^"]|\\")+)")?/i,	//finds individual attribute and value
+		regAttrDfn = /(\[([(\w|\-)!]+(="([^"]|\\")+")? {0,})+\])/i,
+		regAttrs = /([(\w|\-)!]+(="([^"]|\\")+")?)/gi,	//finds each attribute
+		regAttr = /([(\w|\-)!]+)(="(([^"]|\\")+)")?/i,	//finds individual attribute and value
 
 		//finds content within '{' and '}' while ignoring '\}'
 		regCBrace = /\{(([^\}]|\\\})+)\}/i,
@@ -351,7 +351,7 @@
 		if(ZenBlock.search(regAttrDfn) == -1)
 			return undefined;
 		var attrStrs = ZenBlock.match(regAttrDfn);
-		var attrStrs = attrStrs[0].match(regAttrs);
+		attrStrs = attrStrs[0].match(regAttrs);
 		var attrs = {};
 		for(var i=0;i<attrStrs.length;i++) {
 			var parts = regAttr.exec(attrStrs[i]);
