@@ -1,23 +1,189 @@
 start
-  = ZenDefinition
+  = ZenDefinitionGroup
+
+ZenDefinitionGroup
+  = ContinueDef? "(" ContinueDef?
+        def:MultipleZenDefinitions
+      ContinueDef? ")" ContinueDef?
+      {
+        return def;
+      }
+    / MultipleZenDefinitions
+
+MultipleZenDefinitions
+  = ContinueDef? def:ZenDefinition ContinueDef? "+" 
+      defs:ZenDefinitionGroup
+      {
+        var allDefs;
+        if(def.length>0) {
+          allDefs = def;
+        } else {
+          allDefs = [def];
+        }
+        for(var i=0; i<defs.length; i++) {
+          allDefs.push(defs[i]);
+        }
+        return allDefs;
+      } //sibling
+    / ContinueDef? def:ZenDefinition ContinueDef?
+      {
+        if(def.length>0) {
+          return def;
+        } else {
+          return [def];
+        }
+      }
 
 ZenDefinition
-  = HTMLElement? CSSId? CSSClass*
+  = ContinueDef? el:HTMLElement? id:CSSId? classes:CSSClass*
+      attrs:CSSAttributes? val:ZenValue? child:ZenChild?// EOL
+    {
+      var ret = { "element": el || "div" };
+      if(id !== undefined) {
+        ret.id = id;
+      }
+      if(classes.length > 0) {
+        ret.classes = classes;
+      }
+      if(attrs.length > 0) {
+        ret.attributes = attrs;
+      }
+      if(val !== undefined && val != "") {
+        ret.value = val
+      }
+      if(child !== undefined && child.length>0) {
+        ret.children = child;
+      }
+      console.log("reting ZenDef", ret);
+      return ret;
+    }
+
+ZenChild
+  = ContinueDef? ">" def:ZenDefinitionGroup { return def; }
+
+ZenValue
+  = ContinueDef? "{" str:ZenValueString? "}" { return str; }
+
+ZenValueString
+  = chars:ZenStringCharacter+ { return chars.join(""); }
+
+ZenStringCharacter
+  = !("}" / "\\") char_:. { return char_; }
+    //had to use str cuz `return "}";` wouldn't compile.
+    / str:"\\}" { return str[1]; }
+    / "\\!" { return "\\!"; }
+    / LineContinuation
 
 CSSId
-  = "#" CSSident:id { return { "id": id }; }
+  = ContinueDef? "#" id:CSSident { return id; }
 
-CSSClass
-  = "." CSSident:clazz { return { "class": clazz }; }
+CSSClass "CSSClass"
+  = ContinueDef? "." clazz:CSSident { return clazz; }
+
+CSSAttributes
+  = ContinueDef? "[" attrs:CSSAttributeList ContinueDef? "]" { return attrs; }
+
+CSSAttributeList
+  = attr:CSSAttribute otherAttrs:(ContinueDef? "," _? CSSAttribute)* {
+      if(attr === undefined) {
+        return [];
+      }
+      var attrArray = [attr];
+      if(otherAttrs.length > 0) {
+        for(var i=0; i<otherAttrs.length; i++) {
+          attrArray.push(otherAttrs[i][3]);
+        }
+      }
+      return attrArray;
+    }
+
+CSSAttribute
+  = ContinueDef? name:CSSident value:("=" ContinueDef? StringLiteral)? {
+      var ret = {
+        "name": name,
+        "value": value[2]
+      };
+
+      return ret;
+    }
 
 CSSident
-  = -? CSSnmstart CSSnmchar*
+  = [-]? firstChar:CSSnmstart rest:CSSnmchar* { return firstChar+rest.join(""); }
 
 CSSnmstart
   = [_a-z]i
 
 CSSnmchar
   = [_a-z0-9-]i
+
+// {{{1Copied StringLiteral from PEG.js javascript example
+StringLiteral "string"
+  = parts:('"' DoubleStringCharacters? '"' / "'" SingleStringCharacters? "'") {
+      return parts[1];
+    }
+
+DoubleStringCharacters
+  = chars:DoubleStringCharacter+ { return chars.join(""); }
+
+SingleStringCharacters
+  = chars:SingleStringCharacter+ { return chars.join(""); }
+
+DoubleStringCharacter
+  = !('"' / "\\" / EOL) char_:. { return char_;     }
+  / "\\" sequence:EscapeSequence                         { return sequence;  }
+  / LineContinuation
+
+SingleStringCharacter
+  = !("'" / "\\" / EOL) char_:. { return char_;     }
+  / "\\" sequence:EscapeSequence                         { return sequence;  }
+  / LineContinuation
+
+LineContinuation
+  = "\\" sequence:EOL { return sequence; }
+
+EscapeSequence
+  = CharacterEscapeSequence
+  / "0" ![0-9] { return "\0"; }
+  / HexEscapeSequence
+  / UnicodeEscapeSequence
+
+CharacterEscapeSequence
+  = SingleEscapeCharacter
+  / NonEscapeCharacter
+
+SingleEscapeCharacter
+  = char_:['"\\bfnrtv] {
+      return char_
+        .replace("b", "\b")
+        .replace("f", "\f")
+        .replace("n", "\n")
+        .replace("r", "\r")
+        .replace("t", "\t")
+        .replace("v", "\x0B") // IE does not recognize "\v".
+    }
+
+EscapeCharacter
+  = SingleEscapeCharacter
+  / [0-9]
+  / "x"
+  / "u"
+
+HexEscapeSequence
+  = "x" h1:HexDigit h2:HexDigit {
+      return String.fromCharCode(parseInt("0x" + h1 + h2));
+    }
+
+UnicodeEscapeSequence
+  = "u" h1:HexDigit h2:HexDigit h3:HexDigit h4:HexDigit {
+      return String.fromCharCode(parseInt("0x" + h1 + h2 + h3 + h4));
+    }
+
+NonEscapeCharacter
+  = (!EscapeCharacter / EOL) char_:. { return char_; }
+
+HexDigit
+  = [0-9a-fA-F]
+// end StringLiteral rules }}}1
 
 HTMLElement
   = HTML5Element   //prefer HTML5 elements over HTML4
@@ -236,3 +402,17 @@ HTML4Element //all tags defined in HTML4
   / "U"i
   / "UL"i
   / "VAR"i
+
+EOL
+  = "\r\n" / "\n" / "\r"
+
+_
+  = "\t" / " "
+
+/* Continue ZenDefinitions when encountering whitespace or newlines followed by
+ * whitespace (for instance a \n\t sequence).
+ */
+ContinueDef
+  = _* EOL _*
+    / _* EOL ContinueDef
+    / _+
