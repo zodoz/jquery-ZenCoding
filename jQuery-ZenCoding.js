@@ -240,7 +240,6 @@
 			});
 			// create Element based on block
 			var el = $('<'+blockTag+'>', blockAttrs);
-			el.attr(blockAttrs);  //fixes IE error (issue 2)
 			// bind created element with any events and data
 			el = bindEvents(block, el, functions);
 			el = bindData(block, el, data);
