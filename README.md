@@ -47,6 +47,6 @@ Syntax
 **E&data=reference** - ***reference*** is the string of an object within data to be mapped to ***E*** as ***data*** via $.data(***data***,***reference***)<br>
 **@reference** - When using a ZenObject M, ***reference*** should be a string representation of a ZenCode N within M which will replace the ***@reference*** in the running ZenCode.<br>
 **!js!** - The value returned by executing ***js*** will replace ***!js!*** in the ZenCode<br>
-**!if:js!E** - Creates ***E*** only if the restult returned by executing ***js*** is not undefined, null, or flase.<br>
+**!if:js!E** - Creates ***E*** only if the restult returned by executing ***js*** is not undefined, null, or false.<br>
 **!for:var!E** - If ***var*** is a string matching an object in data, then N number of ***E*** are created using ***var*** as data where N is the number of elements in ***var***.<br>
 **!for:index:var!E** - If ***var*** is a string matching an object in data, then N number of ***E*** are created using ***var*** as data and a new accessable object with the same name as the string ***index*** where N is the number of elements in ***var***.<br>
